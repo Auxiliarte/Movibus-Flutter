@@ -3,6 +3,7 @@ import 'splash_screen.dart';
 import 'package:movibus/auth/login_screen.dart';
 import 'package:movibus/auth/register_screen.dart';
 import 'home_screen.dart';
+import 'welcome.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,9 +19,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
       routes: {
+        '/home': (_) => const HomeScreen(),
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
-        '/home': (_) => const HomeScreen(),
+        '/Welcome': (_) => const WelcomeScreen(),
       },
     );
   }

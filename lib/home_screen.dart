@@ -24,8 +24,14 @@ class HomeScreen extends StatelessWidget {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.directions_bus), label: 'Rutas'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Configuración'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.directions_bus),
+            label: 'Rutas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Configuración',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Usuario'),
         ],
       ),
@@ -45,7 +51,11 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   const Text(
                     'Hola José',
-                    style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   _searchInput("¿Dónde te encuentras?"),
@@ -58,7 +68,7 @@ class HomeScreen extends StatelessWidget {
                         radius: 18,
                         backgroundColor: Colors.white.withOpacity(0.2),
                         child: const Icon(Icons.sync, color: Colors.white),
-                      )
+                      ),
                     ],
                   ),
                 ],
@@ -70,21 +80,35 @@ class HomeScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Text("Favoritos", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  "Favoritos",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 Text("Agregar", style: TextStyle(color: Colors.deepPurple)),
               ],
             ),
             const SizedBox(height: 12),
-            _favoriteCard(icon: Icons.home, title: "Casa", subtitle: "Malvas 112, fracc. Del Llano"),
+            _favoriteCard(
+              icon: Icons.home,
+              title: "Casa",
+              subtitle: "Malvas 112, fracc. Del Llano",
+            ),
             const SizedBox(height: 8),
-            _favoriteCard(icon: Icons.work, title: "Trabajo", subtitle: "Venustiano Carranza 500, col. Centro"),
+            _favoriteCard(
+              icon: Icons.work,
+              title: "Trabajo",
+              subtitle: "Venustiano Carranza 500, col. Centro",
+            ),
             const SizedBox(height: 24),
 
             // Cuponera
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
-                Text("Cuponera", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  "Cuponera",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 Text("Ver todo", style: TextStyle(color: Colors.deepPurple)),
               ],
             ),
@@ -103,18 +127,26 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Historial
-            const Text("Historial", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              "Historial",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             ListTile(
               tileColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               leading: const Icon(Icons.access_time, color: Colors.deepPurple),
               title: const Text("Ruta 24"),
               subtitle: const Text("Av. Industrias 600"),
               trailing: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: const [
-                  Text("Hace 2 días", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text(
+                    "Hace 2 días",
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
                   SizedBox(height: 4),
                   Icon(Icons.delete_outline, size: 18, color: Colors.grey),
                 ],
@@ -134,14 +166,24 @@ class HomeScreen extends StatelessWidget {
         hintStyle: const TextStyle(color: Colors.white70),
         filled: true,
         fillColor: Colors.white.withOpacity(0.1),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
       ),
       style: const TextStyle(color: Colors.white),
     );
   }
 
-  Widget _favoriteCard({required IconData icon, required String title, required String subtitle}) {
+  Widget _favoriteCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -158,7 +200,7 @@ class HomeScreen extends StatelessWidget {
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
               Text(subtitle, style: const TextStyle(color: Colors.grey)),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -174,7 +216,10 @@ class HomeScreen extends StatelessWidget {
         image: DecorationImage(
           image: AssetImage(imagePath),
           fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.1), BlendMode.darken),
+          colorFilter: ColorFilter.mode(
+            Colors.black.withOpacity(0.1),
+            BlendMode.darken,
+          ),
         ),
       ),
       child: Align(
@@ -188,7 +233,11 @@ class HomeScreen extends StatelessWidget {
           ),
           child: Text(
             offerText,
-            style: const TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.green,
+              fontWeight: FontWeight.bold,
+            ),
             textAlign: TextAlign.center,
           ),
         ),

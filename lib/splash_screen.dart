@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:movibus/auth/login_screen.dart';
+import 'welcome.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -34,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final token = await _secureStorage.read(key: 'auth_token');
 
     if (token == null) {
-      _goToLogin();
+      _goToWelcome();
       return;
     }
 
@@ -58,6 +59,13 @@ class _SplashScreenState extends State<SplashScreen> {
     }
   }
 
+  void _goToWelcome() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+    );
+  }
+
   void _goToHome() {
     Navigator.pushReplacement(
       context,
@@ -74,8 +82,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

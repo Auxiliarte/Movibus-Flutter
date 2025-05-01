@@ -30,8 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  carousel_slider: ^5.0.0
+  font_awesome_flutter: ^9.2.0
+  flutter_spinkit: ^5.1.0
   google_sign_in: ^6.1.4
-  sign_in_with_apple: ^5.0.0    
+  loading_animation_widget: ^1.2.0
+  sign_in_with_apple: ^7.0.1    
   flutter_signin_button: ^2.0.0
   http: ^0.13.0  
   flutter_secure_storage: ^9.0.0
@@ -60,6 +64,13 @@ flutter:
     - assets/little_caesar.png
     - assets/devlyn.png
     - assets/cinemex.png    
+    - assets/logoMoventra.png
+    - assets/Frame1.png
+    - assets/Frame.png
+    - assets/minecraft-dynamic-gradient.png
+    - assets/Icon/icons-google.png
+    - assets/Icon/icons-facebook.png
+    - assets/Illustration.png
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -81,17 +92,9 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  fonts:
+    - family: Quicksand
+      fonts:
+        - asset: assets/font/Quicksand-Regular.ttf
+        - asset: assets/font/Quicksand-Bold.ttf
+          weight: 700
