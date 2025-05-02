@@ -50,15 +50,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_currentStep < 2) {
       setState(() => _currentStep += 1);
     } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Formulario enviado')));
-    }
-  }
+      setState(() {
+        _isLoading = true;
+      });
 
-  void _cancelar() {
-    if (_currentStep > 0) {
-      setState(() => _currentStep -= 1);
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.pushReplacementNamed(context, '/Welcome');
+      });
     }
   }
 
@@ -316,11 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               IconButton(
                                 icon: const Icon(Icons.settings_outlined),
                                 onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Configuración'),
-                                    ),
-                                  );
+                                  Navigator.pushNamed(context, '/settings');
                                 },
                               ),
                             ],

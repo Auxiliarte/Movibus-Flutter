@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -8,6 +8,7 @@ class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
 
@@ -37,21 +38,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    _showWelcomeScreen();
-  }
-
-  void _showWelcomeScreen() async {
-    await Future.delayed(const Duration(milliseconds: 1500));
     _startAnimation();
   }
 
   void _startAnimation() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(
+      const Duration(milliseconds: 300),
+    ); // Reducir tiempo de espera
     setState(() {
       _imageTopPosition = -MediaQuery.of(context).size.height;
     });
 
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(
+      const Duration(milliseconds: 880),
+    ); // Reducir espera adicional
     setState(() {
       _animationCompleted = true;
     });
@@ -69,7 +69,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-
       body: SafeArea(
         child: Stack(
           children: [
@@ -92,9 +91,12 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
 
-            //animacion
+            // Mostrar contenido solo después de que la animación haya terminado
             if (_animationCompleted)
-              Positioned.fill(
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity:
+                    1.0, // Al finalizar la animación, la opacidad será 1 (totalmente visible)
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -102,6 +104,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     children: [
                       const SizedBox(height: 20),
 
+                      // Carrusel de imágenes
                       CarouselSlider(
                         options: CarouselOptions(
                           height: 300,
@@ -134,9 +137,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                       const SizedBox(height: 12),
 
+                      // Indicadores del carrusel
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-
                         children:
                             _imagePaths.asMap().entries.map((entry) {
                               return Container(
@@ -159,14 +162,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
                       const SizedBox(height: 16),
 
-                      //titulos y subtitulos dinamicos sincronizados
+                      // Títulos y subtítulos sincronizados
                       Center(
                         child: Text(
                           _titles[_currentSlide],
                           style: TextStyle(
-                            fontSize: 36,
+                            fontSize: 35,
                             fontWeight: FontWeight.bold,
-
+                            fontFamily: 'Quicksand',
                             color: const Color.fromARGB(255, 0, 0, 0),
                           ),
                           textAlign: TextAlign.center,
@@ -180,8 +183,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           _subtitles[_currentSlide],
                           style: TextStyle(
                             fontFamily: 'Quicksand',
-                            fontSize: 17,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                             color: const Color.fromARGB(236, 0, 0, 0),
                           ),
                           textAlign: TextAlign.center,
@@ -189,7 +192,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      //Boton registro
+                      // Botón de registro
                       Center(
                         child: SizedBox(
                           width: double.infinity,
@@ -212,8 +215,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                         ),
                       ),
-
-                      const SizedBox(height: 32),
 
                       const SizedBox(height: 32),
 

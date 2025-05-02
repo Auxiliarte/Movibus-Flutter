@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 import 'package:movibus/auth/login_screen.dart';
 import 'package:movibus/auth/register_screen.dart';
-import 'home_screen.dart';
+import 'package:movibus/auth/reset_pass.dart';
+import 'screen/home_screen.dart';
+import 'screen/settings.dart';
 import 'welcome.dart';
 
 void main() {
@@ -23,6 +25,8 @@ class MyApp extends StatelessWidget {
         '/login': (_) => const LoginScreen(),
         '/register': (_) => const RegisterScreen(),
         '/Welcome': (_) => const WelcomeScreen(),
+        '/resetPass': (_) => const ResetPasswordScreen(),
+        '/settings': (_) => SettingsScreen(),
       },
     );
   }

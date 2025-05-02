@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:movibus/auth/login_screen.dart';
+import 'package:movibus/screen/home_screen.dart';
 import 'welcome.dart';
-import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
