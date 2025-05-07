@@ -5,6 +5,7 @@ import 'package:movibus/auth/register_screen.dart';
 import 'package:movibus/auth/reset_pass.dart';
 import 'screen/home_screen.dart';
 import 'screen/settings.dart';
+import 'screen/routes_screen.dart';
 import 'welcome.dart';
 
 void main() {
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
         '/Welcome': (_) => const WelcomeScreen(),
         '/resetPass': (_) => const ResetPasswordScreen(),
         '/settings': (_) => SettingsScreen(),
+        '/routes': (_) => const RoutesScreen(),
       },
     );
   }
