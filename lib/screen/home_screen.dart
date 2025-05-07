@@ -1,5 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../models/coupon.dart';
+import '../services/coupon_service.dart';
+import '../widgets/coupon_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,6 +25,15 @@ class HomeScreen extends StatelessWidget {
         showUnselectedLabels: true,
         currentIndex: 0,
         type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.pushNamed(context, '/routes');
+          }
+          if (index == 2) {
+            Navigator.pushNamed(context, '/settings');
+          }
+          // Puedes agregar navegación para los demás ítems si lo deseas
+        },        
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
@@ -112,17 +124,31 @@ class HomeScreen extends StatelessWidget {
                 Text("Ver todo", style: TextStyle(color: Colors.deepPurple)),
               ],
             ),
+            // Dentro de ListView children en lugar de cupones quemados
             const SizedBox(height: 12),
-            SizedBox(
-              height: 110,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _couponCard("assets/little_caesar.png", "10% de descuento"),
-                  _couponCard("assets/devlyn.png", "5% de descuento"),
-                  _couponCard("assets/cinemex.png", "2 x 1"),
-                ],
-              ),
+            FutureBuilder<List<Coupon>>(
+              future: CouponService.fetchCoupons(getBackendUrl()),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Text("Error al cargar cupones");
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Text("No hay cupones disponibles");
+                }
+
+                final cupones = snapshot.data!;
+                return SizedBox(
+                  height: 110,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: cupones.length,
+                    itemBuilder: (context, index) {
+                      return CouponCard(coupon: cupones[index]);
+                    },
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 24),
 
