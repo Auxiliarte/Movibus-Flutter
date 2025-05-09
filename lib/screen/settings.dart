@@ -17,14 +17,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
   };
 
   int _currentIndex = 2;
-
   void _onItemTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
-
     if (index == 0) {
-      Navigator.pushNamed(context, '/Welcome');
+      Navigator.pushNamed(context, '/home');
+    } else if (index == 1) {
+      Navigator.pushNamed(context, '/routesHistory');
+    } else if (index == 2) {
+      Navigator.pushNamed(context, '/settings');
+    } else if (index == 3) {
+      Navigator.pushNamed(context, '/profile');
     }
   }
 
@@ -34,9 +38,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Widget buildOption(String title, String key, {bool removeIcon = false}) {
+  Widget buildOption(
+    String title,
+    String key,
+    ThemeData theme, {
+    bool removeIcon = false,
+    double fontSize = 18,
+  }) {
     final isExpanded = expandStates[key] ?? false;
-    final isActive = isExpanded;
+    final textColor = theme.textTheme.bodyMedium?.color;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,29 +54,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ListTile(
           title: Text(
             title,
-            style: TextStyle(
-              fontFamily: 'Quicksand',
-              color: Colors.black,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: fontSize,
+              fontWeight: isExpanded ? FontWeight.w600 : FontWeight.w500,
             ),
           ),
           trailing:
               removeIcon
                   ? null
                   : Icon(
-                    isActive
+                    isExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_right,
-                    color: isActive ? Colors.black : Colors.grey,
+                    color: textColor,
                   ),
           onTap: () => toggle(key),
         ),
         if (isExpanded)
-          Container(
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-            child: const Text(
+            child: Text(
               'Contenido desplegado...',
-              style: TextStyle(fontFamily: 'Quicksand', color: Colors.grey),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
           ),
       ],
@@ -75,107 +84,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(0),
           children: [
             // Encabezado
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  color: Colors.grey,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-                const Text(
-                  "Configuración",
-                  style: TextStyle(
-                    fontFamily: 'Quicksand',
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    fontSize: 20,
-                  ),
-                ),
-                const SizedBox(
-                  width: 48,
-                ), // Para alinear con el ícono de cerrar
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // Suscripción Premium
             Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Color(0xFF7257FF),
-                borderRadius: BorderRadius.circular(12),
-              ),
+              color: theme.secondaryHeaderColor,
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Suscripción Premium',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Quicksand',
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'Actualiza para obtener más opciones',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 15,
-                          fontFamily: 'Quicksand',
-                        ),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    color: theme.iconTheme.color,
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
-                  Image.asset(
-                    'assets/king.png',
-                    width: 60,
-                    height: 60,
-                    fit: BoxFit.cover,
+                  Text(
+                    "Configuración",
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  const SizedBox(width: 48), // Para alinear con el ícono
                 ],
+              ),
+            ),
+
+            // Suscripción Premium
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 15,
+              ), // Margen lateral
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Suscripción Premium',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Actualiza para obtener más opciones',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Image.asset(
+                      'assets/king.png',
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  ],
+                ),
               ),
             ),
 
             const SizedBox(height: 40),
 
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 "Configuración de la cuenta",
-                style: TextStyle(
-                  fontSize: 17,
+                style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  fontSize: 18,
                   fontFamily: 'Quicksand',
                 ),
               ),
             ),
 
             const SizedBox(height: 16),
-            buildOption("Información personal", "informacion"),
-            buildOption("Contraseña", "contrasena"),
-            buildOption("Correo", "correo"),
+            buildOption(
+              "Información personal",
+              "informacion",
+              theme,
+              fontSize: 17,
+            ),
+            buildOption("Contraseña", "contrasena", theme, fontSize: 17),
+            buildOption("Correo", "correo", theme, fontSize: 17),
 
             Column(
               children: [
-                buildOption("Más", "mas", removeIcon: true),
+                buildOption("Más", "mas", theme, removeIcon: true),
                 if (expandStates['mas'] ?? false) ...[
                   const SizedBox(height: 8),
-                  buildOption("Soporte", "soporte"),
-                  buildOption("Términos y condiciones", "terminos"),
+                  buildOption("Soporte", "soporte", theme, fontSize: 17),
+                  buildOption(
+                    "Términos y condiciones",
+                    "terminos",
+                    theme,
+                    fontSize: 16,
+                  ),
                 ],
               ],
             ),
@@ -185,15 +206,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  // Aquí va tu lógica para cerrar sesión
+                  // Tu lógica para cerrar sesión
                 },
-                child: const Text(
+                child: Text(
                   'Finalizar sesión',
                   style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 16,
-                    fontFamily: 'Quicksand',
+                    color: theme.colorScheme.error,
                     fontWeight: FontWeight.bold,
+                    fontSize: 17,
                   ),
                 ),
               ),

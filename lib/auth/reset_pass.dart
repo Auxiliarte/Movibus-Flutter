@@ -293,6 +293,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     return Theme(
       data: Theme.of(context).copyWith(textTheme: quicksandTextTheme),
       child: Scaffold(
+        backgroundColor: Theme.of(context).secondaryHeaderColor,
         body:
             _isLoading
                 ? const CustomLoadingWidget()

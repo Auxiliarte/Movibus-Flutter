@@ -72,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
         textTheme: Theme.of(context).textTheme.apply(fontFamily: 'Quicksand'),
       ),
       child: Scaffold(
+        backgroundColor: Theme.of(context).secondaryHeaderColor,
         body: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -139,11 +140,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.pushNamed(context, '/resetPass');
                       },
-                      child: const Text(
+                      child: Text(
                         '¿Olvidaste tu contraseña?',
                         style: TextStyle(
                           fontFamily: 'Quicksand',
-                          color: Colors.black,
+
                           fontWeight: FontWeight.bold,
                         ),
                       ),

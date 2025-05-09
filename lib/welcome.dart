@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:movibus/themes/app_colors.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -67,8 +68,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.secondaryHeaderColor,
       body: SafeArea(
         child: Stack(
           children: [
@@ -80,7 +83,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               right: 0,
               child: Container(
                 height: MediaQuery.of(context).size.height,
-                color: const Color(0xFF2E0E6B),
+                color: AppColors.darkBodyBackground,
                 child: Center(
                   child: Image.asset(
                     'assets/logoMoventra.png',
@@ -110,7 +113,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           height: 300,
                           autoPlay: true,
                           enlargeCenterPage: true,
-                          viewportFraction: 2.0,
+                          viewportFraction: 1.0,
                           autoPlayInterval: const Duration(seconds: 4),
                           onPageChanged: (index, reason) {
                             setState(() {
@@ -123,7 +126,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               return Builder(
                                 builder: (BuildContext context) {
                                   return ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(0),
                                     child: Image.asset(
                                       imagePath,
                                       fit: BoxFit.cover,
@@ -167,10 +170,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         child: Text(
                           _titles[_currentSlide],
                           style: TextStyle(
-                            fontSize: 35,
-                            fontWeight: FontWeight.bold,
                             fontFamily: 'Quicksand',
-                            color: const Color.fromARGB(255, 0, 0, 0),
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary,
+                            // Color para el modo claro
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -185,7 +192,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             fontFamily: 'Quicksand',
                             fontSize: 18,
                             fontWeight: FontWeight.w500,
-                            color: const Color.fromARGB(236, 0, 0, 0),
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.darkTextPrimary
+                                    : AppColors.lightTextPrimary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -331,7 +341,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, '/login');
+                              Navigator.pushNamed(context, '/home');
                             },
                             child: Text(
                               "Inicia sesión",

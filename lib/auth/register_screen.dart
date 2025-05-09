@@ -277,6 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Theme(
       data: Theme.of(context).copyWith(textTheme: quicksandTextTheme),
       child: Scaffold(
+        backgroundColor: Theme.of(context).secondaryHeaderColor,
         body:
             _isLoading
                 ? const CustomLoadingWidget()
@@ -344,7 +345,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 context,
                               ).textTheme.headlineLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 30,
+                                fontSize: 33,
                                 fontFamily: 'Quicksand',
                               ),
                             ),
@@ -357,7 +358,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Text(
                               stepSubtitles[_currentStep],
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: 16,
                                 fontFamily: 'Quicksand',
                               ),
                             ),
