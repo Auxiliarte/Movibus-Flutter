@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/coupon.dart';
+import '../../models/coupon.dart';
 
 class CouponCard extends StatelessWidget {
   final Coupon coupon;
@@ -14,16 +14,17 @@ class CouponCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        image: coupon.imagen != null
-            ? DecorationImage(
-                image: NetworkImage(coupon.imagen!),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                  Colors.black.withOpacity(0.1),
-                  BlendMode.darken,
-                ),
-              )
-            : null,
+        image:
+            coupon.imagen != null
+                ? DecorationImage(
+                  image: NetworkImage(coupon.imagen!),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.1),
+                    BlendMode.darken,
+                  ),
+                )
+                : null,
       ),
       child: Align(
         alignment: Alignment.bottomCenter,

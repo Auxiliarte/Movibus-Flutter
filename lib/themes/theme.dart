@@ -66,14 +66,9 @@ class AppThemes {
     switchTheme: SwitchThemeData(
       trackColor: MaterialStateProperty.resolveWith<Color>((states) {
         if (states.contains(MaterialState.selected)) {
-          return AppColors.lightswithcActive; // color cuando está activado
+          return AppColors.lightswithcActive;
         }
-        return const Color.fromARGB(
-          255,
-          223,
-          223,
-          223,
-        ); // gris claro cuando está desactivado
+        return const Color.fromARGB(255, 223, 223, 223);
       }),
       thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
         return Colors.white; // bolita siempre blanca

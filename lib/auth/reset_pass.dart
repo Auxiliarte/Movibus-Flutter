@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movibus/widgets/Auth/ResetPassword/verification_code_input.dart';
 import '../widgets/LoadingScreen.dart';
 import '../widgets/custom_text_form_field.dart';
 
@@ -72,7 +73,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       Future.delayed(const Duration(seconds: 2), () {
         setState(() {
           _isLoading = false;
-          // (context, '/success');
         });
       });
 
@@ -99,7 +99,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             ? 'El correo es requerido'
                             : null,
               ),
-
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
@@ -116,118 +115,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
         );
 
-      //Codigo de verificación
       case 1:
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 24),
-
-              // Mensaje de error si existe
-              if (_codigoError != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0),
-                  child: Text(
-                    _codigoError!,
-                    style: const TextStyle(
-                      color: Colors.red,
-                      fontSize: 14,
-                      fontFamily: 'Quicksand',
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-
-              // Campos de verificación
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: SizedBox(
-                      width: 60,
-                      height: 60,
-                      child: TextField(
-                        controller: _codeControllers[index],
-                        focusNode: _focusNodes[index],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        keyboardType: TextInputType.number,
-                        maxLength: 1,
-                        onChanged: (value) {
-                          if (value.isNotEmpty && index < 3) {
-                            FocusScope.of(
-                              context,
-                            ).requestFocus(_focusNodes[index + 1]);
-                          }
-                          if (value.isEmpty && index > 0) {
-                            FocusScope.of(
-                              context,
-                            ).requestFocus(_focusNodes[index - 1]);
-                          }
-                        },
-                        decoration: InputDecoration(
-                          counterText: '',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                              color: Color.fromARGB(255, 180, 180, 180),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFA13CF2),
-                              width: 2,
-                            ),
-                          ),
-                          hintText: '•',
-                          hintStyle: const TextStyle(
-                            fontSize: 24,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-
-              const SizedBox(height: 16),
-
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    codigoReenviado = true;
-                  });
-                },
-                child: const Text(
-                  'Reenviar',
-                  style: TextStyle(
-                    color: Color(0xFFA13CF2),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-
-              if (codigoReenviado)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: Text(
-                    'Se envió código de verificación.',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-            ],
-          ),
+        return VerificationCodeInput(
+          codeControllers: _codeControllers,
+          focusNodes: _focusNodes,
+          errorMessage: _codigoError,
         );
 
-      //Establecer nueva contraseña
       case 2:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,8 +140,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               ),
             ),
             const SizedBox(height: 24),
-
-            const SizedBox(height: 8),
             TextField(
               obscureText: true,
               decoration: InputDecoration(
@@ -257,21 +149,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   fontSize: 16,
                   color: Color.fromARGB(255, 100, 100, 100),
                 ),
-                border: OutlineInputBorder(
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
-                  borderSide: BorderSide(
-                    color: Color.fromARGB(255, 180, 180, 180),
-                  ),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  borderSide: BorderSide(
-                    color: Color.fromARGB(255, 180, 180, 180),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  borderSide: BorderSide(color: Color(0xFFA13CF2), width: 2),
                 ),
               ),
             ),
@@ -283,7 +162,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
   }
 
-  //biuld con sup / inf.
   @override
   Widget build(BuildContext context) {
     final quicksandTextTheme = Theme.of(
@@ -319,7 +197,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                   }
                                 },
                               ),
-
                               IconButton(
                                 icon: const Icon(Icons.settings_outlined),
                                 onPressed: () {

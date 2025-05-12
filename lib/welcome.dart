@@ -341,7 +341,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, '/home');
+                              Navigator.pushNamed(context, '/login');
                             },
                             child: Text(
                               "Inicia sesión",

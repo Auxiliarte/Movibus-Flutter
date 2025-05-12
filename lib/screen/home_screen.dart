@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:movibus/themes/app_colors.dart';
+import 'package:movibus/widgets/Home/coupon_card.dart';
+import 'package:movibus/widgets/Home/favorite_card.dart';
+import 'package:movibus/widgets/Home/search_input.dart';
+import 'package:movibus/widgets/Home/suggested_route_card.dart';
+import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 import '../models/coupon.dart';
 import '../services/coupon_service.dart';
-import '../widgets/coupon_card.dart';
-import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  // Nuevas variables para manejar la visibilidad de trayectos
   TextEditingController _fromController = TextEditingController();
   TextEditingController _toController = TextEditingController();
   bool _isVisibleTrayectos = false;
@@ -45,7 +47,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Método para controlar la visibilidad de los trayectos cuando ambos inputs estén llenos
   void _checkInputs() {
     setState(() {
       _isVisibleTrayectos =
@@ -66,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: ListView(
           children: [
-            // Sección superior
             Container(
               decoration: BoxDecoration(color: theme.cardColor),
               padding: const EdgeInsets.all(40),
@@ -84,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 25,
                         backgroundImage: AssetImage('assets/Avatars.png'),
                         backgroundColor: Colors.transparent,
@@ -92,12 +92,20 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _searchInput("¿Dónde te encuentras?", _fromController),
+                  SearchInput(
+                    hint: "¿Dónde te encuentras?",
+                    controller: _fromController,
+                    onChanged: (text) => _checkInputs(),
+                  ),
                   const SizedBox(height: 12),
                   Stack(
                     alignment: Alignment.centerRight,
                     children: [
-                      _searchInput("¿A dónde vas?", _toController),
+                      SearchInput(
+                        hint: "¿A dónde vas?",
+                        controller: _toController,
+                        onChanged: (text) => _checkInputs(),
+                      ),
                       CircleAvatar(
                         radius: 18,
                         backgroundColor: Colors.white.withOpacity(0.2),
@@ -111,7 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 10),
 
-            // Solo mostrar los trayectos cuando ambos campos estén llenos
             Visibility(
               visible: _isVisibleTrayectos,
               child: Padding(
@@ -127,41 +134,35 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Column(
-                      children: [
-                        _suggestedRouteCard(
-                          ruta: "Ruta #1",
-                          salida: "Sale 3:00 de la Av. Industrial 1650",
-                          tiempo: "30 minutos",
-                          horaLlegada: "15:30",
-                        ),
-                        const SizedBox(height: 12),
-                        _suggestedRouteCard(
-                          ruta: "Ruta #2",
-                          salida: "Sale 3:00 de la Av. chapultepec 1980",
-                          tiempo: "25 minutos",
-                          horaLlegada: "15:20",
-                        ),
-                        const SizedBox(height: 12),
-                        _suggestedRouteCard(
-                          ruta: "Ruta #3",
-                          salida: "Sale 3:00 de la Av. México 230",
-                          tiempo: "40 minutos",
-                          horaLlegada: "15:50",
-                        ),
-                      ],
+                    const SuggestedRouteCard(
+                      ruta: "Ruta #1",
+                      salida: "Sale 3:00 de la Av. Industrial 1650",
+                      tiempo: "30 minutos",
+                      horaLlegada: "15:30",
+                    ),
+                    const SizedBox(height: 12),
+                    const SuggestedRouteCard(
+                      ruta: "Ruta #2",
+                      salida: "Sale 3:00 de la Av. chapultepec 1980",
+                      tiempo: "25 minutos",
+                      horaLlegada: "15:20",
+                    ),
+                    const SizedBox(height: 12),
+                    const SuggestedRouteCard(
+                      ruta: "Ruta #3",
+                      salida: "Sale 3:00 de la Av. México 230",
+                      tiempo: "40 minutos",
+                      horaLlegada: "15:50",
                     ),
                   ],
                 ),
               ),
             ),
 
-            // Mostrar el resto del contenido solo si los trayectos no están visibles
             Visibility(
               visible: !_isVisibleTrayectos,
               child: Column(
                 children: [
-                  // FAVORITOS
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -178,22 +179,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).inputDecorationTheme.fillColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: _favoriteCard(
-                        icon: Icons.home,
-                        title: "Casa",
-                        subtitle: "Malvas 112, fracc. Del Llano",
-                      ),
+                    child: FavoriteCard(
+                      icon: Icons.home,
+                      title: "Casa",
+                      subtitle: "Malvas 112, fracc. Del Llano",
                     ),
                   ),
                   const SizedBox(height: 8),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _favoriteCard(
+                    child: FavoriteCard(
                       icon: Icons.work,
                       title: "Trabajo",
                       subtitle: "Venustiano Carranza 500, col. Centro",
@@ -201,7 +196,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // CUPONERA
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
@@ -255,7 +249,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // HISTORIAL
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
@@ -266,14 +259,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               "Historial",
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.copyWith(
+                              style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
                               ),
                             ),
-                            Icon(
+                            const Icon(
                               Icons.delete_outline,
                               size: 25,
                               color: Color(0xFFA13CF2),
@@ -285,31 +276,30 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () {
                             Navigator.pushNamed(context, '/routes');
                           },
-                          tileColor: Theme.of(context).dialogBackgroundColor,
+                          tileColor: theme.dialogBackgroundColor,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           leading: Icon(
                             Icons.access_time,
-                            color:
-                                Theme.of(context).textTheme.bodyMedium?.color,
+                            color: theme.textTheme.bodyMedium?.color,
                           ),
                           title: Text(
                             "Ruta 24",
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: theme.textTheme.bodyMedium,
                           ),
                           subtitle: Text(
                             "Av. Industrias 600",
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: theme.textTheme.bodySmall,
                           ),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 "Hace 2 días",
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.labelMedium?.copyWith(fontSize: 12),
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  fontSize: 12,
+                                ),
                               ),
                               const SizedBox(height: 4),
                             ],
@@ -323,146 +313,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _searchInput(String hint, TextEditingController controller) {
-    return TextField(
-      controller: controller,
-      onChanged: (text) {
-        _checkInputs(); // Verifica si los campos están llenos
-      },
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      style: const TextStyle(color: Colors.white),
-    );
-  }
-
-  Widget _suggestedRouteCard({
-    required String ruta,
-    required String salida,
-    required String tiempo,
-    required String horaLlegada,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).dialogBackgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Color.fromARGB(241, 255, 255, 255)),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.directions_bus_outlined,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        ruta,
-
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'quicksand',
-                        ),
-                      ),
-                    ),
-                    const Icon(Icons.keyboard_arrow_right),
-                  ],
-                ),
-                Text(
-                  salida,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey,
-                    fontFamily: 'quicksand',
-                  ),
-                ),
-                const Divider(color: Color.fromARGB(255, 204, 203, 203)),
-                const SizedBox(height: 7),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      " $tiempo",
-                      style: TextStyle(
-                        color: AppColors.darkInputFocus,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: "quicksand",
-                      ),
-                    ),
-                    Text(
-                      "Llegada a las: $horaLlegada",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontFamily: "quicksand",
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _favoriteCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).dialogBackgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Theme.of(context).textTheme.bodyMedium?.color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.keyboard_arrow_right,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-        ],
       ),
     );
   }
