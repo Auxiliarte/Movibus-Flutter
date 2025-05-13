@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/themes/app_colors.dart'; // Asegúrate de importar tus colores
+import 'package:movibus/screen/home_screen.dart';
+import 'package:movibus/themes/app_colors.dart';
+
+import 'package:movibus/widgets/bottom_notifications.dart';
 
 class RouterHistorialScreen extends StatelessWidget {
   const RouterHistorialScreen({super.key});
@@ -11,7 +14,6 @@ class RouterHistorialScreen extends StatelessWidget {
     return Scaffold(
       body: ListView(
         children: [
-          // AppBar personalizado
           Container(
             color: theme.secondaryHeaderColor,
             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 20),
@@ -25,8 +27,9 @@ class RouterHistorialScreen extends StatelessWidget {
                 ),
                 Text(
                   "Rutas",
-                  style: theme.textTheme.titleLarge?.copyWith(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
                 const SizedBox(width: 48),
@@ -36,7 +39,7 @@ class RouterHistorialScreen extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Contenedores de rutas sugeridas
+          // rutas sugeridas
           _suggestedRouteCard(
             context,
             ruta: "Ruta 12",
@@ -66,52 +69,67 @@ class RouterHistorialScreen extends StatelessWidget {
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).dialogBackgroundColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.directions_bus_outlined,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          ruta,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Quicksand',
+      child: GestureDetector(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder:
+                (context) => BottomNotifications(
+                  onExitPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).dialogBackgroundColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.directions_bus_outlined,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            ruta,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Quicksand',
+                            ),
                           ),
                         ),
-                      ),
-                      const Icon(Icons.keyboard_arrow_right),
-                    ],
-                  ),
-                  Text(
-                    salida,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey,
-                      fontFamily: 'quicksand',
+                        const Icon(Icons.keyboard_arrow_right),
+                      ],
                     ),
-                  ),
-                ],
+                    Text(
+                      salida,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey,
+                        fontFamily: 'quicksand',
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -206,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: TextButton(
                 onPressed: () {
-                  // Tu lógica para cerrar sesión
+                  Navigator.pushNamed(context, '/Welcome');
                 },
                 child: Text(
                   'Finalizar sesión',

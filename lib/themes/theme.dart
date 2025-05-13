@@ -15,6 +15,7 @@ class AppThemes {
       surface: AppColors.lightMenuBackground,
       onSurface: AppColors.lightTextPrimary,
     ),
+
     dialogBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
     cardColor: const Color(0xFF2A154D),
     secondaryHeaderColor: AppColors.lightBodyBackground,
