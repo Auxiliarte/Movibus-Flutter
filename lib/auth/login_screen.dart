@@ -17,14 +17,18 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailCtrl = TextEditingController();
-  final TextEditingController _passwordCtrl = TextEditingController();
+  final TextEditingController _emailCtrl = TextEditingController(
+    text: 'eduardo@test.com',
+  );
+  final TextEditingController _passwordCtrl = TextEditingController(
+    text: 'eduardo',
+  );
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   bool _isLoading = false;
   bool _recordarSesion = false;
   String? _errorMessage;
 
-  String getBackendUrl() => 'http://192.168.100.146:8000/api';
+  String getBackendUrl() => 'https://app.moventra.com.mx/api';
 
   void _showError(String message) {
     setState(() => _errorMessage = message);

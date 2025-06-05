@@ -19,16 +19,16 @@ class Step3Content extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 20),
+        const SizedBox(height: 0),
         Center(
           child: Image.asset(
             'assets/Illustration.png',
-            width: 350,
-            height: 350,
+            width: 300,
+            height: 300,
             fit: BoxFit.contain,
           ),
         ),
-        const SizedBox(height: 30),
+        const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

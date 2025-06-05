@@ -24,26 +24,28 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isVisibleTrayectos = false;
 
   void _onItemTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    if (index == 0) {
-      Navigator.pushNamed(context, '/home');
-    } else if (index == 1) {
-      Navigator.pushNamed(context, '/routesHistory');
-    } else if (index == 2) {
-      Navigator.pushNamed(context, '/settings');
-    } else if (index == 3) {
-      Navigator.pushNamed(context, '/profile');
+    setState(() => _currentIndex = index);
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/routesHistory');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/settings');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
     }
   }
 
   String getBackendUrl() {
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8000/api';
+      return 'https://app.moventra.com.mx/api';
     } else {
-      return 'http://192.168.1.221:8000/api';
+      return 'https://app.moventra.com.mx/api';
     }
   }
 
@@ -200,17 +202,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Text(
+                      children: [
+                        const Text(
                           "Cuponera",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Text(
-                          "Ver todo",
-                          style: TextStyle(color: Colors.deepPurple),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/couponHistory');
+                          },
+                          child: const Text(
+                            "Ver todo",
+                            style: TextStyle(color: Colors.deepPurple),
+                          ),
                         ),
                       ],
                     ),
@@ -250,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 24),
 
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
         '/resetPass': (_) => const ResetPasswordScreen(),
         '/settings': (_) => SettingsScreen(),
         '/routes': (_) => const RoutesScreen(),
-        '/routesHistory': (_) => const RouterHistorialScreen(),
+        '/routesHistory': (_) => const RoutesScreen(),
         '/routesBus': (_) => const BusRouteScreen(),
         '/profile': (_) => const ProfileScreen(),
         '/couponHistory': (_) => const CouponPromoHistorialScreen(),

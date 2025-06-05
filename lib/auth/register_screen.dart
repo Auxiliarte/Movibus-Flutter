@@ -144,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 context,
                               ).textTheme.headlineLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 33,
+                                fontSize: 30,
                                 fontFamily: 'Quicksand',
                               ),
                             ),

@@ -13,7 +13,7 @@ class CouponService {
           .map((json) => Coupon.fromJson(json))
           .toList();
     } else {
-      throw Exception('Error al obtener cupones');
+      throw Exception('Error al obtener cupones ahora');
     }
   }
 }

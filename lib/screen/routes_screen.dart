@@ -1,26 +1,54 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 import '../models/route_model.dart';
 import '../services/route_service.dart';
 import 'route_map_screen.dart';
 
-class RoutesScreen extends StatelessWidget {
+class RoutesScreen extends StatefulWidget {
   const RoutesScreen({super.key});
+
+  @override
+  State<RoutesScreen> createState() => _RoutesScreenState();
+}
+
+class _RoutesScreenState extends State<RoutesScreen> {
+  int _currentIndex = 1;
+
+  void _onItemTapped(int index) {
+    setState(() => _currentIndex = index);
+
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/routesHistory');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/settings');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
 
   String getBackendUrl() {
     if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8000/api';
+      return 'https://app.moventra.com.mx/api';
     } else {
-      return 'http://192.168.1.221:8000/api';
+      return 'https://app.moventra.com.mx/api';
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Rutas"),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: theme.secondaryHeaderColor,
       ),
       body: FutureBuilder<List<RouteModel>>(
         future: RouteService.fetchRoutes(getBackendUrl()),
@@ -38,28 +66,61 @@ class RoutesScreen extends StatelessWidget {
             itemCount: rutas.length,
             itemBuilder: (context, index) {
               final ruta = rutas[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: ListTile(
-                  title: Text(ruta.nombre),
-                  subtitle: Text(
-                    "${ruta.locations.length} paradas"
-                    "${ruta.busNombre != null ? " - ${ruta.busNombre}" : ""}",
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RouteMapScreen(ruta: ruta),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
                   ),
-                  leading: const Icon(Icons.route, color: Colors.deepPurple),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => RouteMapScreen(ruta: ruta),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).dialogBackgroundColor,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.route, color: Colors.deepPurple),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ruta.nombre,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "${ruta.locations.length} paradas"
+                              "${ruta.busNombre != null ? " - ${ruta.busNombre}" : ""}",
+                              style: const TextStyle(),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-                  },
+                      const Icon(Icons.keyboard_arrow_right),
+                    ],
+                  ),
                 ),
               );
             },
           );
         },
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

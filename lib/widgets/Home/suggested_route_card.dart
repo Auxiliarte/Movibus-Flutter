@@ -19,9 +19,7 @@ class SuggestedRouteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, '/routesBus');
-      },
+      onTap: () {},
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).dialogBackgroundColor,

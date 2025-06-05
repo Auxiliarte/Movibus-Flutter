@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:movibus/themes/app_colors.dart';
 import 'package:movibus/widgets/Home/coupon_card_list.dart';
 import 'package:movibus/widgets/Home/coupon_promo_card.dart';
+import 'package:movibus/widgets/custom_bottom_nav_bar.dart'; // Importa tu navbar
 
 class CouponPromoHistorialScreen extends StatefulWidget {
   const CouponPromoHistorialScreen({super.key});
@@ -15,6 +16,30 @@ class _CouponPromoHistorialScreenState
     extends State<CouponPromoHistorialScreen> {
   final List<bool> favoriteStates = [true, false]; // Estado para cada tarjeta
   String selectedCategory = "Todos";
+
+  int _currentIndex = 0; // Estado para el navbar
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // Aquí puedes hacer la navegación dependiendo del índice
+    switch (index) {
+      case 0:
+        Navigator.pushNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushNamed(context, '/routesHistory');
+        break;
+      case 2:
+        Navigator.pushNamed(context, '/settings');
+        break;
+      case 3:
+        Navigator.pushNamed(context, '/profile');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +119,10 @@ class _CouponPromoHistorialScreenState
             onFavoriteToggle: () {},
           ),
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

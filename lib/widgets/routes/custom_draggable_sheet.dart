@@ -143,7 +143,7 @@ class BusRouteSheet extends StatelessWidget {
               }),
             ),
           ],
-          const SizedBox(height: 100),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: onButtonPressed,
             style: ElevatedButton.styleFrom(
@@ -154,7 +154,7 @@ class BusRouteSheet extends StatelessWidget {
               ),
             ),
             child: Text(
-              isJourneyStarted ? 'Salir' : 'Comenzar viaje',
+              isJourneyStarted ? 'Salir' : 'Iniciar viaje',
               style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
           ),

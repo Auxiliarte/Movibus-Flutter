@@ -35,7 +35,7 @@ class RatingSheet extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
@@ -60,7 +60,9 @@ class RatingSheet extends StatelessWidget {
                       index < selectedRating
                           ? Icons.star
                           : Icons.star_border_outlined,
-                      color: Colors.amber,
+                      color:
+                          Color.fromARGB(255, 2, 158, 49) ?? Color(0xFFA13CF2),
+
                       size: 45,
                     ),
                     onPressed: () => onRatingChanged(index + 1),
@@ -102,7 +104,14 @@ class RatingSheet extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: onSubmit,
+                  onPressed: () {
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/home',
+                      (route) => false,
+                    );
+                  },
+
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFA13CF2),
                     padding: const EdgeInsets.symmetric(vertical: 14),

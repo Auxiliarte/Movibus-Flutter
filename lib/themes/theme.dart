@@ -18,7 +18,8 @@ class AppThemes {
 
     dialogBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
     cardColor: const Color(0xFF2A154D),
-    secondaryHeaderColor: AppColors.lightBodyBackground,
+
+    secondaryHeaderColor: const Color.fromARGB(255, 255, 255, 255),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: AppColors.lightInputBackground,

@@ -62,7 +62,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:8000/api';
     } else {
-      return 'http://192.168.1.221:8000/api';
+      return 'https://app.moventra.com.mx/api';
     }
   }
 
@@ -110,7 +110,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       // Carrusel de imágenes
                       CarouselSlider(
                         options: CarouselOptions(
-                          height: 300,
+                          height: 180,
                           autoPlay: true,
                           enlargeCenterPage: true,
                           viewportFraction: 1.0,

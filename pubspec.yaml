@@ -77,6 +77,8 @@ flutter:
     - assets/Avatars.png
     - assets/Tp127eb40g.png
     - assets/promoda.png
+    - assets/bus-motion.png
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
