@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:movibus/screen/coupon_promo_screen.dart';
+import 'package:movibus/screen/profile_Editpersonal_screen.dart';
+import 'package:movibus/screen/profile_EditPass_screen.dart';
+import 'package:movibus/screen/profile_edit_screen.dart';
+import 'package:movibus/screen/profile_mail_screen.dart';
 import 'package:movibus/screen/route_bus_screen.dart';
 import 'package:movibus/screen/router_history.dart';
 import 'splash_screen.dart';
@@ -49,6 +53,10 @@ class MyApp extends StatelessWidget {
         '/routesHistory': (_) => const RoutesScreen(),
         '/routesBus': (_) => const BusRouteScreen(),
         '/profile': (_) => const ProfileScreen(),
+        '/EditProfile': (_) => const ProfileEditMenu(),
+        '/EditProfilePersonal': (_) => const ProfileEditpersonal(),
+        '/EditProfilePass': (_) => const ProfileEditPass(),
+        '/EditProfileMail': (_) => const ProfileEditMail(),
         '/couponHistory': (_) => const CouponPromoHistorialScreen(),
         '/statistics': (_) => const StatisticsScreen(),
       },

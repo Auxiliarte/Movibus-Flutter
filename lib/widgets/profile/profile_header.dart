@@ -33,7 +33,7 @@ class ProfileHeader extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             OutlinedButton(
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(context, '/EditProfile'),
               child: const Text("Editar perfil"),
             ),
             const SizedBox(height: 32),

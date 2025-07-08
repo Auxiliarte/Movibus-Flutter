@@ -88,6 +88,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(25),
+              margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
                 color: theme.dialogBackgroundColor,
                 borderRadius: BorderRadius.circular(16),
@@ -131,7 +132,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                   const SizedBox(height: 16),
                   _horizontalBar("Premium", 0.7, const Color(0xFF7257FF)),
                   const SizedBox(height: 12),
-                  _horizontalBar("Free", 0.2, const Color(0xFFDBD4FF)),
+                  _horizontalBar("Free", 0.3, const Color(0xFFDBD4FF)),
                 ],
               ),
             ),
@@ -139,7 +140,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
             // Contenedor de gráficas verticales y resumen
             Container(
-              padding: const EdgeInsets.all(25),
+              padding: const EdgeInsets.all(20),
+              margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: theme.dialogBackgroundColor,
                 borderRadius: BorderRadius.circular(16),
@@ -281,13 +283,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                               isMax ? const Color(0xFF7257FF) : Colors.grey;
 
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 SizedBox(
                                   height: 200,
-                                  width: 30,
+                                  width: 23,
                                   child: Stack(
                                     alignment: Alignment.bottomCenter,
                                     children: [
