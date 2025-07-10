@@ -4,10 +4,15 @@ import 'package:movibus/themes/app_colors.dart';
 import 'package:movibus/widgets/Home/coupon_card.dart';
 import 'package:movibus/widgets/Home/favorite_card.dart';
 import 'package:movibus/widgets/Home/search_input.dart';
+import 'package:movibus/widgets/Home/enhanced_search_input.dart';
 import 'package:movibus/widgets/Home/suggested_route_card.dart';
+import 'package:movibus/widgets/Home/nearest_station_widget.dart';
+import 'package:movibus/widgets/Home/route_suggestions_widget.dart';
 import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 import '../models/coupon.dart';
 import '../services/coupon_service.dart';
+import '../services/location_service.dart';
+import 'package:movibus/widgets/Home/place_autocomplete_field.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController _fromController = TextEditingController();
   TextEditingController _toController = TextEditingController();
   bool _isVisibleTrayectos = false;
+  
+  // Coordenadas para las rutas sugeridas
+  double? _fromLatitude;
+  double? _fromLongitude;
+  double? _toLatitude;
+  double? _toLongitude;
 
   void _onItemTapped(int index) {
     setState(() => _currentIndex = index);
@@ -86,34 +97,51 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const CircleAvatar(
-                        radius: 25,
-                        backgroundImage: AssetImage('assets/Avatars.png'),
-                        backgroundColor: Colors.transparent,
+                      Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/locationTest');
+                            },
+                            icon: const Icon(
+                              Icons.location_on,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            tooltip: 'Prueba de API de Ubicación',
+                          ),
+                          const CircleAvatar(
+                            radius: 25,
+                            backgroundImage: AssetImage('assets/Avatars.png'),
+                            backgroundColor: Colors.transparent,
+                          ),
+                        ],
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
-                  SearchInput(
+                  PlaceAutocompleteField(
                     hint: "¿Dónde te encuentras?",
                     controller: _fromController,
-                    onChanged: (text) => _checkInputs(),
+                    onPlaceSelected: (name, lat, lng) {
+                      setState(() {
+                        _fromLatitude = lat;
+                        _fromLongitude = lng;
+                        _checkInputs();
+                      });
+                    },
                   ),
                   const SizedBox(height: 12),
-                  Stack(
-                    alignment: Alignment.centerRight,
-                    children: [
-                      SearchInput(
-                        hint: "¿A dónde vas?",
-                        controller: _toController,
-                        onChanged: (text) => _checkInputs(),
-                      ),
-                      CircleAvatar(
-                        radius: 18,
-                        backgroundColor: Colors.white.withOpacity(0.2),
-                        child: const Icon(Icons.sync, color: Colors.white),
-                      ),
-                    ],
+                  PlaceAutocompleteField(
+                    hint: "¿A dónde vas?",
+                    controller: _toController,
+                    onPlaceSelected: (name, lat, lng) {
+                      setState(() {
+                        _toLatitude = lat;
+                        _toLongitude = lng;
+                        _checkInputs();
+                      });
+                    },
                   ),
                 ],
               ),
@@ -121,6 +149,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
             const SizedBox(height: 10),
 
+            // Widget de estación más cercana
+            const NearestStationWidget(),
+
+            // Widget de rutas sugeridas (solo se muestra cuando hay destino)
+            Visibility(
+              visible: _isVisibleTrayectos,
+              child: RouteSuggestionsWidget(
+                destinationAddress: _toController.text.isNotEmpty ? _toController.text : null,
+                destinationLatitude: _toLatitude,
+                destinationLongitude: _toLongitude,
+              ),
+            ),
+
+            // Trayectos sugeridos originales (mantener como fallback)
             Visibility(
               visible: _isVisibleTrayectos,
               child: Padding(

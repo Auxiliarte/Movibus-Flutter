@@ -17,6 +17,7 @@ import 'screen/routes_screen.dart';
 import 'welcome.dart';
 import 'package:movibus/providers/themeprovider.dart';
 import 'package:movibus/screen/profile_screen.dart';
+import 'package:movibus/screen/location_test_screen.dart';
 import 'package:provider/provider.dart';
 import 'themes/theme.dart';
 
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
         '/EditProfileMail': (_) => const ProfileEditMail(),
         '/couponHistory': (_) => const CouponPromoHistorialScreen(),
         '/statistics': (_) => const StatisticsScreen(),
+        '/locationTest': (_) => const LocationTestScreen(),
       },
     );
   }
