@@ -107,20 +107,27 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       ),
     };
 
-    // Agregar marcadores de estaciones intermedias
+    // Agregar marcadores de estaciones intermedias (solo si tienen coordenadas válidas)
     for (int i = 0; i < widget.routeSuggestion.intermediateStations.length; i++) {
       final station = widget.routeSuggestion.intermediateStations[i];
-      _markers.add(
-        Marker(
-          markerId: MarkerId('intermediate_${station.id}'),
-          position: LatLng(station.latitude, station.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-          infoWindow: InfoWindow(
-            title: station.name,
-            snippet: 'Estación intermedia',
+      
+      // Verificar que las coordenadas no sean 0.0, 0.0
+      if (station.latitude != 0.0 && station.longitude != 0.0) {
+        print('📍 Agregando estación intermedia: ${station.name} (${station.latitude}, ${station.longitude})');
+        _markers.add(
+          Marker(
+            markerId: MarkerId('intermediate_${station.id}'),
+            position: LatLng(station.latitude, station.longitude),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+            infoWindow: InfoWindow(
+              title: station.name,
+              snippet: 'Estación intermedia',
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        print('⚠️ Omitiendo estación intermedia ${station.name} con coordenadas inválidas: (${station.latitude}, ${station.longitude})');
+      }
     }
   }
 
@@ -533,20 +540,39 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     double minLng = double.infinity;
     double maxLng = -double.infinity;
 
-    for (final marker in _markers) {
-      print('📍 Marcador ${marker.markerId.value}: ${marker.position.latitude}, ${marker.position.longitude}');
+    // Filtrar solo marcadores con coordenadas válidas (no 0.0, 0.0)
+    final validMarkers = _markers.where((marker) {
+      final isValid = marker.position.latitude != 0.0 && marker.position.longitude != 0.0;
+      print('📍 Marcador ${marker.markerId.value}: ${marker.position.latitude}, ${marker.position.longitude} - Válido: $isValid');
+      return isValid;
+    }).toList();
+
+    print('🗺️ Marcadores válidos: ${validMarkers.length} de ${_markers.length}');
+
+    if (validMarkers.isEmpty) {
+      print('❌ No hay marcadores válidos, usando posición por defecto');
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          const LatLng(22.1565, -100.9855), // San Luis Potosí centro
+          12,
+        ),
+      );
+      return;
+    }
+
+    for (final marker in validMarkers) {
       minLat = min(minLat, marker.position.latitude);
       maxLat = max(maxLat, marker.position.latitude);
       minLng = min(minLng, marker.position.longitude);
       maxLng = max(maxLng, marker.position.longitude);
     }
 
-    print('🗺️ Bounds: SW(${minLat}, ${minLng}) NE(${maxLat}, ${maxLng})');
+    print('🗺️ Bounds válidos: SW(${minLat}, ${minLng}) NE(${maxLat}, ${maxLng})');
 
     // Verificar que las coordenadas son válidas
     if (minLat == double.infinity || maxLat == -double.infinity || 
         minLng == double.infinity || maxLng == -double.infinity) {
-      print('❌ Coordenadas inválidas, usando posición por defecto');
+      print('❌ Coordenadas inválidas después del filtrado, usando posición por defecto');
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
           const LatLng(22.1565, -100.9855), // San Luis Potosí centro
