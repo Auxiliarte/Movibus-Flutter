@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:movibus/auth/login_screen.dart';
 import 'package:movibus/screen/home_screen.dart';
+import 'package:movibus/services/auth_service.dart';
 import 'welcome.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,13 +17,10 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final AuthService _authService = AuthService();
 
   String getBackendUrl() {
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:8000/api';
-    } else {
-      return 'https://app.moventra.com.mx/api';
-    }
+    return _authService.getBackendUrl();
   }
 
   @override
@@ -32,30 +30,18 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkToken() async {
-    final token = await _secureStorage.read(key: 'auth_token');
-
-    if (token == null) {
-      _goToWelcome();
-      return;
-    }
-
-    try {
-      final response = await http.get(
-        Uri.parse('${getBackendUrl()}/user'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        _goToHome();
-      } else {
-        await _secureStorage.delete(key: 'auth_token');
-        _goToLogin();
+    final hasActiveSession = await _authService.hasActiveSession();
+    
+    if (hasActiveSession) {
+      _goToHome();
+    } else {
+      // Verificar si hay un token pero no está marcado como "recordar sesión"
+      final token = await _secureStorage.read(key: 'auth_token');
+      if (token != null) {
+        // Limpiar token si no está marcado como recordar sesión
+        await _authService.logout();
       }
-    } catch (e) {
-      _goToLogin();
+      _goToWelcome();
     }
   }
 

@@ -202,7 +202,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Botón de registro
+                      // Botón principal de login
                       Center(
                         child: SizedBox(
                           width: double.infinity,
@@ -216,11 +216,37 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               textStyle: const TextStyle(fontSize: 18),
                             ),
                             onPressed: () {
+                              Navigator.pushNamed(context, '/login');
+                            },
+                            child: const Text(
+                              'Iniciar sesión',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Botón secundario de registro
+                      Center(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              side: const BorderSide(color: Color(0xFFA13CF2)),
+                              textStyle: const TextStyle(fontSize: 16),
+                            ),
+                            onPressed: () {
                               Navigator.pushNamed(context, '/register');
                             },
                             child: const Text(
                               'Registrate',
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: Color(0xFFA13CF2)),
                             ),
                           ),
                         ),
@@ -321,34 +347,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                 color: Colors.white,
                               ),
                               onPressed: () {},
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Sesión
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "¿Ya tienes cuenta?",
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pushNamed(context, '/login');
-                            },
-                            child: Text(
-                              "Inicia sesión",
-                              style: TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w400,
-                              ),
                             ),
                           ),
                         ],

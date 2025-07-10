@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 //import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'register_screen.dart';
 import 'dart:io' show Platform;
+import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,11 +25,25 @@ class _LoginScreenState extends State<LoginScreen> {
     text: 'eduardo',
   );
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
   bool _recordarSesion = false;
   String? _errorMessage;
 
-  String getBackendUrl() => 'https://app.moventra.com.mx/api';
+  String getBackendUrl() => _authService.getBackendUrl();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkExistingSession();
+  }
+
+  Future<void> _checkExistingSession() async {
+    final hasSession = await _authService.hasActiveSession();
+    if (hasSession) {
+      Navigator.pushReplacementNamed(context, '/home');
+    }
+  }
 
   void _showError(String message) {
     setState(() => _errorMessage = message);
@@ -54,9 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (_recordarSesion) {
-          await _secureStorage.write(key: 'auth_token', value: data['token']);
-        }
+        // Guardar la sesión usando el servicio de autenticación
+        await _authService.saveSession(data['token'], _recordarSesion);
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         final data = jsonDecode(response.body);
