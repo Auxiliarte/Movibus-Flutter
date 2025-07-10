@@ -37,9 +37,9 @@ dependencies:
   loading_animation_widget: ^1.2.0
   sign_in_with_apple: ^7.0.1    
   flutter_signin_button: ^2.0.0
-  http: ^0.13.0  
+  http: ^1.1.0  
   flutter_secure_storage: ^9.0.0
-  google_maps_flutter: ^2.5.0
+  google_maps_flutter: ^2.5.3
   provider: ^6.1.0
   geolocator: ^10.1.0
   permission_handler: ^11.0.1

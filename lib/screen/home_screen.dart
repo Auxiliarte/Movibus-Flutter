@@ -8,6 +8,7 @@ import 'package:movibus/widgets/Home/enhanced_search_input.dart';
 import 'package:movibus/widgets/Home/suggested_route_card.dart';
 import 'package:movibus/widgets/Home/nearest_station_widget.dart';
 import 'package:movibus/widgets/Home/route_suggestions_widget.dart';
+import 'package:movibus/widgets/Home/popular_places_suggestions.dart';
 import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 import '../models/coupon.dart';
 import '../services/coupon_service.dart';
@@ -123,6 +124,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   PlaceAutocompleteField(
                     hint: "¿Dónde te encuentras?",
                     controller: _fromController,
+                    autoDetectLocation: true,
+                    showCurrentLocationButton: true,
                     onPlaceSelected: (name, lat, lng) {
                       setState(() {
                         _fromLatitude = lat;
@@ -137,6 +140,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     controller: _toController,
                     onPlaceSelected: (name, lat, lng) {
                       setState(() {
+                        _toLatitude = lat;
+                        _toLongitude = lng;
+                        _checkInputs();
+                      });
+                    },
+                  ),
+                  
+                  // Sugerencias de lugares populares
+                  PopularPlacesSuggestions(
+                    onPlaceSelected: (name, lat, lng) {
+                      setState(() {
+                        _toController.text = name;
                         _toLatitude = lat;
                         _toLongitude = lng;
                         _checkInputs();
