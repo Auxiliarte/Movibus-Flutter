@@ -14,6 +14,8 @@ import '../services/coupon_service.dart';
 import '../services/location_service.dart';
 import 'package:movibus/widgets/Home/place_autocomplete_field.dart';
 import 'package:movibus/widgets/Home/help_modal.dart';
+import 'package:movibus/widgets/Home/destination_picker_modal.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -254,30 +256,56 @@ class _HomeScreenState extends State<HomeScreen> {
                           print('🚌 HomeScreen - Buscando mejor ruta...');
                           print('🚌 From: (${_fromLatitude}, ${_fromLongitude})');
                           print('🚌 To: (${_toLatitude}, ${_toLongitude})');
-                          
                           setState(() {
                             _isSearchingRoutes = true;
                           });
-                          
                           try {
                             // Verificar que tenemos coordenadas válidas
                             if (_fromLatitude == null || _fromLongitude == null) {
                               print('❌ From coordinates are null');
                               throw Exception('Ubicación de origen no disponible');
                             }
-                            
                             if (_toLatitude == null || _toLongitude == null) {
                               print('❌ To coordinates are null');
                               throw Exception('Ubicación de destino no disponible');
                             }
-                            
-                            print('🚌 All coordinates are valid, proceeding...');
-                            
+                            // Mostrar modal para confirmar/modificar destino
+                            final result = await showModalBottomSheet<Map<String, dynamic>>(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.white,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                              ),
+                              builder: (context) => Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                                ),
+                                child: DestinationPickerModal(
+                                  origin: LatLng(_fromLatitude!, _fromLongitude!),
+                                  destination: LatLng(_toLatitude!, _toLongitude!),
+                                  originAddress: _fromController.text,
+                                  destinationAddress: _toController.text,
+                                ),
+                              ),
+                            );
+                            if (result != null) {
+                              setState(() {
+                                _toLatitude = result['latitude'] as double;
+                                _toLongitude = result['longitude'] as double;
+                                _toController.text = result['address'] as String;
+                              });
+                            } else {
+                              // El usuario canceló el modal, no continuar
+                              setState(() {
+                                _isSearchingRoutes = false;
+                              });
+                              return;
+                            }
+                            print('🚌 Destino confirmado/modificado: (${_toLatitude}, ${_toLongitude})');
                             // Simular búsqueda de rutas
                             await Future.delayed(const Duration(seconds: 2));
-                            
                             print('🚌 Route search completed successfully');
-                            
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('¡Rutas encontradas! Revisa las opciones disponibles.'),
