@@ -92,7 +92,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           snippet: 'Estación de llegada',
         ),
       ),
-      // Marcador del destino final (usando las coordenadas reales del destino)
+      // Marcador del destino final
       Marker(
         markerId: const MarkerId('destination'),
         position: LatLng(
@@ -110,8 +110,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     // Agregar marcadores de estaciones intermedias (solo si tienen coordenadas válidas)
     for (int i = 0; i < widget.routeSuggestion.intermediateStations.length; i++) {
       final station = widget.routeSuggestion.intermediateStations[i];
-      
-      // Verificar que las coordenadas no sean 0.0, 0.0
       if (station.latitude != 0.0 && station.longitude != 0.0) {
         print('📍 Agregando estación intermedia: ${station.name} (${station.latitude}, ${station.longitude})');
         _markers.add(
@@ -129,6 +127,55 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         print('⚠️ Omitiendo estación intermedia ${station.name} con coordenadas inválidas: (${station.latitude}, ${station.longitude})');
       }
     }
+
+    // --- POLILÍNEAS ---
+    _polylines = {};
+
+    // 1. Trayecto caminando (usuario -> estación de partida)
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('walk_to_departure'),
+        color: Colors.blue,
+        width: 4,
+        patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+        points: [
+          LatLng(widget.userLatitude, widget.userLongitude),
+          LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
+        ],
+      ),
+    );
+
+    // 2. Trayecto en autobús (estación de partida -> intermedias -> estación de llegada)
+    final busRoutePoints = <LatLng>[];
+    busRoutePoints.add(LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude));
+    for (final station in widget.routeSuggestion.intermediateStations) {
+      if (station.latitude != 0.0 && station.longitude != 0.0) {
+        busRoutePoints.add(LatLng(station.latitude, station.longitude));
+      }
+    }
+    busRoutePoints.add(LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude));
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('bus_route'),
+        color: Colors.green,
+        width: 6,
+        points: busRoutePoints,
+      ),
+    );
+
+    // 3. Trayecto caminando (estación de llegada -> destino)
+    _polylines.add(
+      Polyline(
+        polylineId: const PolylineId('walk_to_destination'),
+        color: Colors.orange,
+        width: 4,
+        patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+        points: [
+          LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
+          LatLng(widget.destinationLatitude, widget.destinationLongitude),
+        ],
+      ),
+    );
   }
 
   @override
@@ -301,33 +348,77 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   }
 
   Widget _buildMapTab() {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: GoogleMap(
-          initialCameraPosition: CameraPosition(
-            target: LatLng(
-              (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
-              (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
-            ),
-            zoom: 12,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLegendDot(Colors.blue, isDashed: true),
+              const SizedBox(width: 4),
+              const Text('Camina a la estación', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 12),
+              _buildLegendDot(Colors.green),
+              const SizedBox(width: 4),
+              const Text('Trayecto en bus', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 12),
+              _buildLegendDot(Colors.orange, isDashed: true),
+              const SizedBox(width: 4),
+              const Text('Camina al destino', style: TextStyle(fontSize: 12)),
+            ],
           ),
-          markers: _markers,
-          polylines: _polylines,
-          onMapCreated: (GoogleMapController controller) {
-            _mapController = controller;
-            _fitBounds();
-          },
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-          zoomControlsEnabled: false,
         ),
+        Expanded(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(
+                    (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
+                    (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
+                  ),
+                  zoom: 12,
+                ),
+                markers: _markers,
+                polylines: _polylines,
+                onMapCreated: (GoogleMapController controller) {
+                  _mapController = controller;
+                  _fitBounds();
+                },
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                zoomControlsEnabled: false,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLegendDot(Color color, {bool isDashed = false}) {
+    return Container(
+      width: 18,
+      height: 8,
+      decoration: BoxDecoration(
+        color: isDashed ? Colors.transparent : color,
+        borderRadius: BorderRadius.circular(4),
+        border: isDashed ? Border.all(color: color, width: 2) : null,
       ),
+      child: isDashed
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(4, (index) =>
+                  Container(width: 2, height: 8, color: color)),
+            )
+          : null,
     );
   }
 
