@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import '../../services/location_api_service.dart';
 import '../../services/location_service.dart';
 import '../../models/route_suggestion_model.dart';
+import '../../screen/route_detail_screen.dart';
 
 class RouteSuggestionsWidget extends StatefulWidget {
   final String? destinationAddress;
   final double? destinationLatitude;
   final double? destinationLongitude;
+  final double? userLatitude;
+  final double? userLongitude;
 
   const RouteSuggestionsWidget({
     super.key,
     this.destinationAddress,
     this.destinationLatitude,
     this.destinationLongitude,
+    this.userLatitude,
+    this.userLongitude,
   });
 
   @override
@@ -439,10 +444,10 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    // TODO: Implementar ver detalles de la ruta
+                    _showRouteDetails(suggestion);
                   },
                   icon: const Icon(Icons.info_outline, size: 16),
-                  label: const Text('Detalles'),
+                  label: const Text('Ver Ruta'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -454,7 +459,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // TODO: Implementar seleccionar esta ruta
+                    _showRouteDetails(suggestion);
                   },
                   icon: const Icon(Icons.check, size: 16),
                   label: const Text('Seleccionar'),
@@ -472,5 +477,40 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
         ],
       ),
     );
+  }
+
+  void _showRouteDetails(RouteSuggestionModel suggestion) async {
+    // Obtener la ubicación actual del usuario si no está disponible
+    double userLat = widget.userLatitude ?? 0.0;
+    double userLng = widget.userLongitude ?? 0.0;
+    
+    if (userLat == 0.0 && userLng == 0.0) {
+      try {
+        final position = await LocationService.getCurrentLocation();
+        if (position != null) {
+          userLat = position.latitude;
+          userLng = position.longitude;
+        }
+      } catch (e) {
+        print('❌ Error getting user location: $e');
+        // Usar coordenadas por defecto de San Luis Potosí
+        userLat = 22.1565;
+        userLng = -100.9855;
+      }
+    }
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RouteDetailScreen(
+            routeSuggestion: suggestion,
+            destinationAddress: widget.destinationAddress ?? 'Destino',
+            userLatitude: userLat,
+            userLongitude: userLng,
+          ),
+        ),
+      );
+    }
   }
 } 

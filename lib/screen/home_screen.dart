@@ -348,6 +348,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 destinationAddress: _toController.text.isNotEmpty ? _toController.text : null,
                 destinationLatitude: _toLatitude,
                 destinationLongitude: _toLongitude,
+                userLatitude: _fromLatitude,
+                userLongitude: _fromLongitude,
               ),
 
             // Contenido cuando no hay trayectos seleccionados
