@@ -168,6 +168,8 @@ class PlacesService {
 
   // Obtener detalles de un lugar específico
   static Future<PlaceDetails?> getPlaceDetails(String placeId) async {
+    print('📍 PlacesService.getPlaceDetails called with placeId: $placeId');
+    
     try {
       final queryParams = {
         'place_id': placeId,
@@ -182,6 +184,8 @@ class PlacesService {
         queryParams,
       );
 
+      print('📍 Making request to: ${uri.toString()}');
+
       final response = await http.get(uri).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
@@ -189,20 +193,34 @@ class PlacesService {
         },
       );
 
+      print('📍 Response status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+        print('📍 API Status: ${data['status']}');
+        
         if (data['status'] == 'OK') {
-          return PlaceDetails.fromJson(data['result']);
+          print('📍 Raw response data: ${json.encode(data['result'])}');
+          
+          final placeDetails = PlaceDetails.fromJson(data['result']);
+          print('📍 Parsed place details:');
+          print('📍   Name: ${placeDetails.name}');
+          print('📍   Latitude: ${placeDetails.latitude}');
+          print('📍   Longitude: ${placeDetails.longitude}');
+          print('📍   Address: ${placeDetails.formattedAddress}');
+          
+          return placeDetails;
         } else {
-          print('Error en Place Details API: ${data['status']} - ${data['error_message'] ?? 'Sin mensaje'}');
+          print('❌ Error en Place Details API: ${data['status']} - ${data['error_message'] ?? 'Sin mensaje'}');
           return null;
         }
       } else {
-        print('Error HTTP: ${response.statusCode}');
+        print('❌ Error HTTP: ${response.statusCode}');
+        print('❌ Response body: ${response.body}');
         return null;
       }
     } catch (e) {
-      print('Error obteniendo detalles del lugar: $e');
+      print('❌ Error obteniendo detalles del lugar: $e');
       return null;
     }
   }

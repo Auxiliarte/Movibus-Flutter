@@ -9,6 +9,8 @@ class RouteDetailScreen extends StatefulWidget {
   final String destinationAddress;
   final double userLatitude;
   final double userLongitude;
+  final double destinationLatitude;
+  final double destinationLongitude;
 
   const RouteDetailScreen({
     Key? key,
@@ -16,6 +18,8 @@ class RouteDetailScreen extends StatefulWidget {
     required this.destinationAddress,
     required this.userLatitude,
     required this.userLongitude,
+    required this.destinationLatitude,
+    required this.destinationLongitude,
   }) : super(key: key);
 
   @override
@@ -49,6 +53,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     print('👤 Usuario: ${widget.userLatitude}, ${widget.userLongitude}');
     print('🚌 Estación partida: ${widget.routeSuggestion.departureStation.latitude}, ${widget.routeSuggestion.departureStation.longitude}');
     print('🏁 Estación llegada: ${widget.routeSuggestion.arrivalStation.latitude}, ${widget.routeSuggestion.arrivalStation.longitude}');
+    print('🎯 Destino: ${widget.destinationLatitude}, ${widget.destinationLongitude}');
     
     _markers = {
       // Marcador de ubicación del usuario
@@ -87,12 +92,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           snippet: 'Estación de llegada',
         ),
       ),
-      // Marcador del destino final (usando las coordenadas del destino)
+      // Marcador del destino final (usando las coordenadas reales del destino)
       Marker(
         markerId: const MarkerId('destination'),
         position: LatLng(
-          widget.routeSuggestion.arrivalStation.latitude + 0.001, // Pequeño offset para distinguir
-          widget.routeSuggestion.arrivalStation.longitude + 0.001,
+          widget.destinationLatitude,
+          widget.destinationLongitude,
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
         infoWindow: InfoWindow(
@@ -300,8 +305,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         child: GoogleMap(
           initialCameraPosition: CameraPosition(
             target: LatLng(
-              (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude) / 3,
-              (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude) / 3,
+              (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
+              (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
             ),
             zoom: 12,
           ),

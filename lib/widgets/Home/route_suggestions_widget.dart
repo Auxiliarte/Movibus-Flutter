@@ -53,6 +53,18 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
       
       if (position != null) {
         print('🎯 Current position: (${position.latitude}, ${position.longitude})');
+        print('🎯 Destination coordinates: (${widget.destinationLatitude}, ${widget.destinationLongitude})');
+        
+        // Verificar que las coordenadas del destino no sean nulas o cero
+        if (widget.destinationLatitude == null || widget.destinationLongitude == null ||
+            widget.destinationLatitude == 0.0 || widget.destinationLongitude == 0.0) {
+          print('❌ Destination coordinates are null or zero!');
+          setState(() {
+            error = 'Coordenadas del destino no disponibles';
+            isLoading = false;
+          });
+          return;
+        }
         
         // Buscar sugerencias de rutas
         print('🎯 Calling LocationApiService.suggestRoute...');
@@ -508,6 +520,8 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
             destinationAddress: widget.destinationAddress ?? 'Destino',
             userLatitude: userLat,
             userLongitude: userLng,
+            destinationLatitude: widget.destinationLatitude ?? 0.0,
+            destinationLongitude: widget.destinationLongitude ?? 0.0,
           ),
         ),
       );
