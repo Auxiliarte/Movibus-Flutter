@@ -25,7 +25,11 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   String? error;
 
   Future<void> findRouteSuggestions() async {
+    print('🎯 RouteSuggestionsWidget.findRouteSuggestions called');
+    print('🎯 Destination: (${widget.destinationLatitude}, ${widget.destinationLongitude})');
+    
     if (widget.destinationLatitude == null || widget.destinationLongitude == null) {
+      print('❌ Destination coordinates are null');
       setState(() {
         error = 'Destino no especificado';
       });
@@ -38,11 +42,15 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
     });
 
     try {
+      print('🎯 Getting current location...');
       // Obtener ubicación actual
       final position = await LocationService.getCurrentLocation();
       
       if (position != null) {
+        print('🎯 Current position: (${position.latitude}, ${position.longitude})');
+        
         // Buscar sugerencias de rutas
+        print('🎯 Calling LocationApiService.suggestRoute...');
         final result = await LocationApiService.suggestRoute(
           userLatitude: position.latitude,
           userLongitude: position.longitude,
@@ -51,23 +59,43 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
           maxWalkingDistance: 1500, // 1.5 km máximo caminando
         );
 
+        print('🎯 API result: $result');
+
         if (result['status'] == 'success') {
+          print('🎯 Success! Processing suggestions...');
           final suggestions = (result['data']['all_suggestions'] as List)
               .map((suggestion) => RouteSuggestionModel.fromJson(suggestion))
               .toList();
+
+          print('🎯 Processed ${suggestions.length} suggestions');
 
           setState(() {
             routeSuggestions = suggestions;
             isLoading = false;
           });
+        } else if (result['status'] == 'error' && result['message']?.contains('No se encontraron rutas') == true) {
+          // This is a valid response indicating no routes were found
+          print('🎯 No routes found - this is expected behavior');
+          setState(() {
+            routeSuggestions = []; // Empty list to show "no routes" message
+            isLoading = false;
+          });
         } else {
+          print('❌ API returned error status: ${result['status']}');
           setState(() {
             error = result['message'] ?? 'Error al obtener sugerencias';
             isLoading = false;
           });
         }
+      } else {
+        print('❌ Could not get current position');
+        setState(() {
+          error = 'No se pudo obtener la ubicación actual';
+          isLoading = false;
+        });
       }
     } catch (e) {
+      print('❌ Exception in findRouteSuggestions: $e');
       setState(() {
         error = e.toString();
         isLoading = false;
@@ -210,17 +238,31 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                   color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: theme.colorScheme.primary,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No se encontraron rutas convenientes',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'No se encontraron rutas sugeridas para este destino',
-                        style: theme.textTheme.bodyMedium,
+                    const SizedBox(height: 8),
+                    Text(
+                      'No hay rutas de transporte público disponibles para este viaje. Considera usar otras opciones de transporte.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

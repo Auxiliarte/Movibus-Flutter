@@ -251,14 +251,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _isSearchingRoutes ? null : () async {
-                          print('🚌 Buscando mejor ruta...');
+                          print('🚌 HomeScreen - Buscando mejor ruta...');
+                          print('🚌 From: (${_fromLatitude}, ${_fromLongitude})');
+                          print('🚌 To: (${_toLatitude}, ${_toLongitude})');
+                          
                           setState(() {
                             _isSearchingRoutes = true;
                           });
                           
                           try {
+                            // Verificar que tenemos coordenadas válidas
+                            if (_fromLatitude == null || _fromLongitude == null) {
+                              print('❌ From coordinates are null');
+                              throw Exception('Ubicación de origen no disponible');
+                            }
+                            
+                            if (_toLatitude == null || _toLongitude == null) {
+                              print('❌ To coordinates are null');
+                              throw Exception('Ubicación de destino no disponible');
+                            }
+                            
+                            print('🚌 All coordinates are valid, proceeding...');
+                            
                             // Simular búsqueda de rutas
                             await Future.delayed(const Duration(seconds: 2));
+                            
+                            print('🚌 Route search completed successfully');
                             
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -267,6 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             );
                           } catch (e) {
+                            print('❌ Error in route search: $e');
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error al buscar rutas: $e'),
