@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 
-import 'package:movibus/widgets/profile/profile_editPass.dart';
+import 'package:movibus/widgets/profile/profile_edit_pass.dart';
 
 class ProfileEditPass extends StatefulWidget {
   const ProfileEditPass({super.key});

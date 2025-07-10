@@ -86,12 +86,12 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   void _onCameraIdle() {
-    if (_mapController != null && _selectedLocation != null) {
+    if (_mapController != null) {
       _mapController!.getLatLng(ScreenCoordinate(
         x: 0,
         y: 0,
       )).then((center) {
-        if (center != null) {
+        if (center != null && mounted) {
           setState(() {
             _selectedLocation = center;
           });
@@ -135,12 +135,14 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al obtener ubicación actual: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al obtener ubicación actual: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -197,7 +199,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
           // Indicador de carga
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
@@ -216,7 +218,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

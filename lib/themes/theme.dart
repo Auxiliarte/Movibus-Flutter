@@ -9,14 +9,16 @@ class AppThemes {
 
     // Usamos extensions del Map<String, dynamic> para almacenar colores personalizados
     colorScheme: ColorScheme.light(
-      background: AppColors.lightBackground,
+      surface: AppColors.lightBackground,
       primary: AppColors.lightPrimaryButton,
       secondary: AppColors.lightSecondaryButton,
-      surface: AppColors.lightMenuBackground,
+      surfaceContainerHighest: AppColors.lightMenuBackground,
       onSurface: AppColors.lightTextPrimary,
     ),
 
-    dialogBackgroundColor: const Color.fromARGB(255, 255, 255, 255),
+    dialogTheme: DialogTheme(
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+    ),
     cardColor: const Color(0xFF2A154D),
 
     secondaryHeaderColor: const Color.fromARGB(255, 255, 255, 255),
@@ -66,16 +68,16 @@ class AppThemes {
       ),
     ),
     switchTheme: SwitchThemeData(
-      trackColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.lightswithcActive;
         }
         return const Color.fromARGB(255, 223, 223, 223);
       }),
-      thumbColor: MaterialStateProperty.resolveWith<Color>((states) {
+      thumbColor: WidgetStateProperty.resolveWith<Color>((states) {
         return Colors.white; // bolita siempre blanca
       }),
-      trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+      trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),
   );
 
@@ -85,13 +87,15 @@ class AppThemes {
     primaryColor: AppColors.darkPrimaryButton,
 
     colorScheme: ColorScheme.dark(
-      background: AppColors.darkBackground,
+      surface: AppColors.darkBackground,
       primary: AppColors.darkPrimaryButton,
       secondary: AppColors.darkSecondaryButton,
-      surface: AppColors.darkMenuBackground,
+      surfaceContainerHighest: AppColors.darkMenuBackground,
       onSurface: AppColors.darkTextPrimary,
     ),
-    dialogBackgroundColor: AppColors.darkbanCoup,
+    dialogTheme: DialogTheme(
+      backgroundColor: AppColors.darkbanCoup,
+    ),
     cardColor: AppColors.darkProfileHeader,
 
     secondaryHeaderColor: AppColors.darkBodyBackground,
@@ -142,14 +146,14 @@ class AppThemes {
       ),
     ),
     switchTheme: SwitchThemeData(
-      trackColor: MaterialStateProperty.resolveWith<Color>((states) {
-        if (states.contains(MaterialState.selected)) {
+      trackColor: WidgetStateProperty.resolveWith<Color>((states) {
+        if (states.contains(WidgetState.selected)) {
           return AppColors.darkswithcActive;
         }
         return const Color.fromARGB(255, 223, 223, 223);
       }),
-      thumbColor: MaterialStateProperty.all(Colors.white),
-      trackOutlineColor: MaterialStateProperty.all(Colors.transparent),
+      thumbColor: WidgetStateProperty.all(Colors.white),
+      trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
     ),
   );
 }

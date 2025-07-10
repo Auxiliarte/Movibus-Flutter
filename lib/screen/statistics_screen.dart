@@ -90,7 +90,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               padding: const EdgeInsets.all(25),
               margin: EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: theme.dialogBackgroundColor,
+                color: theme.dialogTheme.backgroundColor,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -143,7 +143,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               padding: const EdgeInsets.all(20),
               margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: theme.dialogBackgroundColor,
+                color: theme.dialogTheme.backgroundColor,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -249,7 +249,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             width: 10,
                             height: 10,
                             decoration: const BoxDecoration(
-                              color: const Color(0xFFDBD4FF),
+                              color: Color(0xFFDBD4FF),
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -355,7 +355,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     final percentageText = "${(percentage * 100).toStringAsFixed(0)}%";
     final barWidth =
         percentage *
-        MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width *
+        MediaQuery.of(context).size.width *
         0.6;
 
     return Row(

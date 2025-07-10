@@ -27,8 +27,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  TextEditingController _fromController = TextEditingController();
-  TextEditingController _toController = TextEditingController();
+  final TextEditingController _fromController = TextEditingController();
+  final TextEditingController _toController = TextEditingController();
   bool _isVisibleTrayectos = false;
   
   // Coordenadas para las rutas sugeridas
@@ -135,7 +135,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onOriginSelected(String name, double lat, double lng) {
-    print('🏠 HomeScreen - Origin selected: $name at ($lat, $lng)');
     setState(() {
       _fromLatitude = lat;
       _fromLongitude = lng;
@@ -145,7 +144,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onDestinationSelected(String name, double lat, double lng) {
-    print('🎯 HomeScreen - Destination selected: $name at ($lat, $lng)');
     setState(() {
       _toLatitude = lat;
       _toLongitude = lng;
@@ -253,20 +251,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: _isSearchingRoutes ? null : () async {
-                          print('🚌 HomeScreen - Buscando mejor ruta...');
-                          print('🚌 From: (${_fromLatitude}, ${_fromLongitude})');
-                          print('🚌 To: (${_toLatitude}, ${_toLongitude})');
                           setState(() {
                             _isSearchingRoutes = true;
                           });
                           try {
                             // Verificar que tenemos coordenadas válidas
                             if (_fromLatitude == null || _fromLongitude == null) {
-                              print('❌ From coordinates are null');
                               throw Exception('Ubicación de origen no disponible');
                             }
                             if (_toLatitude == null || _toLongitude == null) {
-                              print('❌ To coordinates are null');
                               throw Exception('Ubicación de destino no disponible');
                             }
                             // Mostrar modal para confirmar/modificar destino
@@ -302,24 +295,25 @@ class _HomeScreenState extends State<HomeScreen> {
                               });
                               return;
                             }
-                            print('🚌 Destino confirmado/modificado: (${_toLatitude}, ${_toLongitude})');
                             // Simular búsqueda de rutas
                             await Future.delayed(const Duration(seconds: 2));
-                            print('🚌 Route search completed successfully');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('¡Rutas encontradas! Revisa las opciones disponibles.'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('¡Rutas encontradas! Revisa las opciones disponibles.'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
                           } catch (e) {
-                            print('❌ Error in route search: $e');
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error al buscar rutas: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error al buscar rutas: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           } finally {
                             setState(() {
                               _isSearchingRoutes = false;
@@ -499,7 +493,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       onTap: () {
                         Navigator.pushNamed(context, '/routes');
                       },
-                      tileColor: theme.dialogBackgroundColor,
+                      tileColor: theme.dialogTheme.backgroundColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),

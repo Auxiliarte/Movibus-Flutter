@@ -30,19 +30,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkToken() async {
-    print('🚀 Iniciando verificación de sesión...');
     await _authService.debugStorage(); // Debug del estado actual
     final hasActiveSession = await _authService.hasActiveSession();
     
     if (hasActiveSession) {
-      print('✅ Sesión activa encontrada - Yendo al Home');
       _goToHome();
     } else {
-      print('❌ No hay sesión activa - Yendo al Welcome');
       // Verificar si hay un token pero no está marcado como "recordar sesión"
       final token = await _secureStorage.read(key: 'auth_token');
       if (token != null) {
-        print('🧹 Limpiando token sin recordar sesión');
         // Limpiar token si no está marcado como recordar sesión
         await _authService.logout();
       }
@@ -64,12 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void _goToLogin() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {

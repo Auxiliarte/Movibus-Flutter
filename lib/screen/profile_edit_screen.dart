@@ -3,8 +3,8 @@ import 'package:movibus/themes/app_colors.dart';
 import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
 import 'package:movibus/widgets/profile/menu_item_tile.dart';
 import 'package:movibus/widgets/profile/preferences_switches.dart';
-import 'package:movibus/widgets/profile/profile_editMenu.dart';
-import 'package:movibus/widgets/profile/profile_headerEdit.dart';
+import 'package:movibus/widgets/profile/profile_edit_menu.dart';
+import 'package:movibus/widgets/profile/profile_header_edit.dart';
 
 class ProfileEditMenu extends StatefulWidget {
   const ProfileEditMenu({super.key});

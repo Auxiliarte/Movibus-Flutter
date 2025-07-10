@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 
 class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  Map<String, bool> expandStates = {
+  final Map<String, bool> expandStates = {
     'informacion': false,
     'contrasena': false,
     'correo': false,

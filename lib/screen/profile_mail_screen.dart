@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
-import 'package:movibus/widgets/profile/profile_editMail.dart';
+import 'package:movibus/widgets/profile/profile_edit_mail.dart';
 
 class ProfileEditMail extends StatefulWidget {
   const ProfileEditMail({super.key});
