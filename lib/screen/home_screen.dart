@@ -458,7 +458,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     final cupones = snapshot.data!;
                     return SizedBox(
-                      height: 110,
+                      height: 180,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: cupones.length,
