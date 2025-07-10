@@ -38,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen> {
       print('✅ Sesión activa encontrada - Yendo al Home');
       _goToHome();
     } else {
-      print('❌ No hay sesión activa - Yendo al Login');
+      print('❌ No hay sesión activa - Yendo al Welcome');
       // Verificar si hay un token pero no está marcado como "recordar sesión"
       final token = await _secureStorage.read(key: 'auth_token');
       if (token != null) {
@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
         // Limpiar token si no está marcado como recordar sesión
         await _authService.logout();
       }
-      _goToLogin();
+      _goToWelcome();
     }
   }
 
