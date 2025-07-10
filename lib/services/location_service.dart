@@ -1,8 +1,12 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart' as permission_handler;
 import 'dart:io' show Platform;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class LocationService {
+  static const String _googleApiKey = "AIzaSyA2NeKAZRdbRsy6cSj52TJRGJdf5wtlSA4";
+
   // Solicitar permisos de ubicación
   static Future<bool> requestLocationPermission() async {
     try {
@@ -106,16 +110,97 @@ class LocationService {
     );
   }
 
-  // Obtener dirección desde coordenadas
+  // Obtener dirección desde coordenadas usando Google Geocoding API
   static Future<String?> getAddressFromCoordinates(
     double latitude,
     double longitude,
   ) async {
     try {
-      // Por ahora, retornamos las coordenadas como string
-      // En una implementación futura se puede integrar con un servicio de geocoding
+      final response = await http.get(
+        Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json'
+          '?latlng=$latitude,$longitude'
+          '&key=$_googleApiKey'
+          '&language=es'
+          '&result_type=street_address|route|premise|establishment'
+        ),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+          final result = data['results'][0];
+          final formattedAddress = result['formatted_address'];
+          
+          // Filtrar solo direcciones de San Luis Potosí
+          if (formattedAddress.toLowerCase().contains('san luis potosí') ||
+              formattedAddress.toLowerCase().contains('slp')) {
+            return formattedAddress;
+          } else {
+            // Si no es de SLP, devolver solo la parte principal
+            final addressComponents = result['address_components'] as List;
+            final streetNumber = addressComponents.firstWhere(
+              (component) => component['types'].contains('street_number'),
+              orElse: () => {'long_name': ''},
+            )['long_name'];
+            
+            final route = addressComponents.firstWhere(
+              (component) => component['types'].contains('route'),
+              orElse: () => {'long_name': ''},
+            )['long_name'];
+            
+            if (streetNumber.isNotEmpty && route.isNotEmpty) {
+              return '$route $streetNumber, San Luis Potosí, SLP';
+            } else if (route.isNotEmpty) {
+              return '$route, San Luis Potosí, SLP';
+            }
+          }
+        }
+      }
+      
+      // Fallback: devolver coordenadas formateadas
       return '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
     } catch (e) {
+      print('Error obteniendo dirección: $e');
+      // Fallback: devolver coordenadas formateadas
+      return '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
+    }
+  }
+
+  // Obtener coordenadas desde dirección usando Google Geocoding API
+  static Future<Map<String, double>?> getCoordinatesFromAddress(
+    String address,
+  ) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json'
+          '?address=${Uri.encodeComponent(address)}'
+          '&key=$_googleApiKey'
+          '&language=es'
+          '&components=country:mx|administrative_area:San Luis Potosí'
+        ),
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        
+        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+          final result = data['results'][0];
+          final geometry = result['geometry'];
+          final location = geometry['location'];
+          
+          return {
+            'latitude': location['lat'].toDouble(),
+            'longitude': location['lng'].toDouble(),
+          };
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      print('Error obteniendo coordenadas: $e');
       return null;
     }
   }
