@@ -18,12 +18,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailCtrl = TextEditingController(
-    text: 'eduardo@test.com',
-  );
-  final TextEditingController _passwordCtrl = TextEditingController(
-    text: 'eduardo',
-  );
+  final TextEditingController _emailCtrl = TextEditingController();
+  final TextEditingController _passwordCtrl = TextEditingController();
   final FlutterSecureStorage _secureStorage = FlutterSecureStorage();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
@@ -69,8 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        print('🎉 Login exitoso - Token recibido: ${data['token'].substring(0, 20)}...');
         // Guardar la sesión usando el servicio de autenticación
         await _authService.saveSession(data['token'], _recordarSesion);
+        await _authService.debugStorage(); // Debug para verificar
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         final data = jsonDecode(response.body);
