@@ -18,6 +18,7 @@ import 'welcome.dart';
 import 'package:movibus/providers/themeprovider.dart';
 import 'package:movibus/screen/profile_screen.dart';
 import 'package:movibus/screen/location_test_screen.dart';
+import 'package:movibus/screen/location_picker_screen.dart';
 import 'package:provider/provider.dart';
 import 'themes/theme.dart';
 
@@ -61,6 +62,13 @@ class MyApp extends StatelessWidget {
         '/couponHistory': (_) => const CouponPromoHistorialScreen(),
         '/statistics': (_) => const StatisticsScreen(),
         '/locationTest': (_) => const LocationTestScreen(),
+        '/locationPicker': (context) {
+          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+          return LocationPickerScreen(
+            title: args?['title'] ?? 'Seleccionar ubicación',
+            initialAddress: args?['initialAddress'],
+          );
+        },
       },
     );
   }

@@ -4,7 +4,16 @@ import '../../services/location_service.dart';
 import '../../models/station_model.dart';
 
 class NearestStationWidget extends StatefulWidget {
-  const NearestStationWidget({super.key});
+  final double? userLatitude;
+  final double? userLongitude;
+  final String? userAddress;
+
+  const NearestStationWidget({
+    super.key,
+    this.userLatitude,
+    this.userLongitude,
+    this.userAddress,
+  });
 
   @override
   _NearestStationWidgetState createState() => _NearestStationWidgetState();
@@ -14,29 +23,63 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
   Map<String, dynamic>? nearestStationData;
   bool isLoading = false;
   String? error;
+  bool _hasSearched = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Auto-buscar si tenemos coordenadas del usuario
+    if (widget.userLatitude != null && widget.userLongitude != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        findNearestStation();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(NearestStationWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Si las coordenadas del usuario cambiaron, buscar nueva estación
+    if ((widget.userLatitude != oldWidget.userLatitude || 
+         widget.userLongitude != oldWidget.userLongitude) &&
+        widget.userLatitude != null && widget.userLongitude != null) {
+      findNearestStation();
+    }
+  }
 
   Future<void> findNearestStation() async {
     setState(() {
       isLoading = true;
       error = null;
+      _hasSearched = true;
     });
 
     try {
-      // Obtener ubicación actual
-      final position = await LocationService.getCurrentLocation();
+      double latitude, longitude;
       
-      if (position != null) {
-        // Buscar estación más cercana
-        final result = await LocationApiService.findNearestStation(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-
-        setState(() {
-          nearestStationData = result;
-          isLoading = false;
-        });
+      // Usar coordenadas del widget si están disponibles, sino obtener ubicación actual
+      if (widget.userLatitude != null && widget.userLongitude != null) {
+        latitude = widget.userLatitude!;
+        longitude = widget.userLongitude!;
+      } else {
+        final position = await LocationService.getCurrentLocation();
+        if (position == null) {
+          throw Exception('No se pudo obtener la ubicación actual');
+        }
+        latitude = position.latitude;
+        longitude = position.longitude;
       }
+
+      // Buscar estación más cercana
+      final result = await LocationApiService.findNearestStation(
+        latitude: latitude,
+        longitude: longitude,
+      );
+
+      setState(() {
+        nearestStationData = result;
+        isLoading = false;
+      });
     } catch (e) {
       setState(() {
         error = e.toString();
@@ -89,8 +132,8 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.my_location, size: 16),
-                  label: Text(isLoading ? 'Buscando...' : 'Buscar'),
+                    : const Icon(Icons.refresh, size: 16),
+                  label: Text(isLoading ? 'Buscando...' : 'Actualizar'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,
@@ -101,7 +144,37 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                 ),
               ],
             ),
+            
+            // Mostrar ubicación del usuario si está disponible
+            if (widget.userAddress != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.secondaryContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person_pin,
+                      color: theme.colorScheme.secondary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Desde: ${widget.userAddress}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            
             const SizedBox(height: 16),
+            
             if (isLoading)
               const Center(
                 child: Column(
@@ -120,14 +193,30 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.red.shade200),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.error_outline, color: Colors.red.shade600),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Error: $error',
-                        style: TextStyle(color: Colors.red.shade700),
+                    Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red.shade600),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Error al buscar estación',
+                            style: TextStyle(
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      error!,
+                      style: TextStyle(
+                        color: Colors.red.shade600,
+                        fontSize: 12,
                       ),
                     ),
                   ],
@@ -135,7 +224,7 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
               )
             else if (nearestStationData != null)
               _buildStationInfo()
-            else
+            else if (_hasSearched)
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -151,8 +240,43 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Presiona "Buscar" para encontrar la estación más cercana a tu ubicación',
+                        'No se encontró una estación cercana. Intenta con otra ubicación.',
                         style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Estación más cercana',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Presiona "Actualizar" para encontrar la estación más cercana a tu ubicación',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -259,6 +383,12 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
               child: OutlinedButton.icon(
                 onPressed: () {
                   // TODO: Implementar navegación a la estación
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Función de navegación próximamente disponible'),
+                      backgroundColor: Colors.blue,
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.directions, size: 16),
                 label: const Text('Direcciones'),
@@ -274,6 +404,12 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
               child: OutlinedButton.icon(
                 onPressed: () {
                   // TODO: Implementar ver detalles de la ruta
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Función de detalles próximamente disponible'),
+                      backgroundColor: Colors.blue,
+                    ),
+                  );
                 },
                 icon: const Icon(Icons.info_outline, size: 16),
                 label: const Text('Ver Ruta'),

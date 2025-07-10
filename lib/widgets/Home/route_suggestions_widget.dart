@@ -2,17 +2,22 @@ import 'package:flutter/material.dart';
 import '../../services/location_api_service.dart';
 import '../../services/location_service.dart';
 import '../../models/route_suggestion_model.dart';
+import '../../screen/route_detail_screen.dart';
 
 class RouteSuggestionsWidget extends StatefulWidget {
   final String? destinationAddress;
   final double? destinationLatitude;
   final double? destinationLongitude;
+  final double? userLatitude;
+  final double? userLongitude;
 
   const RouteSuggestionsWidget({
     super.key,
     this.destinationAddress,
     this.destinationLatitude,
     this.destinationLongitude,
+    this.userLatitude,
+    this.userLongitude,
   });
 
   @override
@@ -25,7 +30,11 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   String? error;
 
   Future<void> findRouteSuggestions() async {
+    print('🎯 RouteSuggestionsWidget.findRouteSuggestions called');
+    print('🎯 Destination: (${widget.destinationLatitude}, ${widget.destinationLongitude})');
+    
     if (widget.destinationLatitude == null || widget.destinationLongitude == null) {
+      print('❌ Destination coordinates are null');
       setState(() {
         error = 'Destino no especificado';
       });
@@ -38,11 +47,27 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
     });
 
     try {
+      print('🎯 Getting current location...');
       // Obtener ubicación actual
       final position = await LocationService.getCurrentLocation();
       
       if (position != null) {
+        print('🎯 Current position: (${position.latitude}, ${position.longitude})');
+        print('🎯 Destination coordinates: (${widget.destinationLatitude}, ${widget.destinationLongitude})');
+        
+        // Verificar que las coordenadas del destino no sean nulas o cero
+        if (widget.destinationLatitude == null || widget.destinationLongitude == null ||
+            widget.destinationLatitude == 0.0 || widget.destinationLongitude == 0.0) {
+          print('❌ Destination coordinates are null or zero!');
+          setState(() {
+            error = 'Coordenadas del destino no disponibles';
+            isLoading = false;
+          });
+          return;
+        }
+        
         // Buscar sugerencias de rutas
+        print('🎯 Calling LocationApiService.suggestRoute...');
         final result = await LocationApiService.suggestRoute(
           userLatitude: position.latitude,
           userLongitude: position.longitude,
@@ -51,23 +76,43 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
           maxWalkingDistance: 1500, // 1.5 km máximo caminando
         );
 
+        print('🎯 API result: $result');
+
         if (result['status'] == 'success') {
+          print('🎯 Success! Processing suggestions...');
           final suggestions = (result['data']['all_suggestions'] as List)
               .map((suggestion) => RouteSuggestionModel.fromJson(suggestion))
               .toList();
+
+          print('🎯 Processed ${suggestions.length} suggestions');
 
           setState(() {
             routeSuggestions = suggestions;
             isLoading = false;
           });
+        } else if (result['status'] == 'error' && result['message']?.contains('No se encontraron rutas') == true) {
+          // This is a valid response indicating no routes were found
+          print('🎯 No routes found - this is expected behavior');
+          setState(() {
+            routeSuggestions = []; // Empty list to show "no routes" message
+            isLoading = false;
+          });
         } else {
+          print('❌ API returned error status: ${result['status']}');
           setState(() {
             error = result['message'] ?? 'Error al obtener sugerencias';
             isLoading = false;
           });
         }
+      } else {
+        print('❌ Could not get current position');
+        setState(() {
+          error = 'No se pudo obtener la ubicación actual';
+          isLoading = false;
+        });
       }
     } catch (e) {
+      print('❌ Exception in findRouteSuggestions: $e');
       setState(() {
         error = e.toString();
         isLoading = false;
@@ -210,17 +255,31 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                   color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: theme.colorScheme.primary,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'No se encontraron rutas convenientes',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'No se encontraron rutas sugeridas para este destino',
-                        style: theme.textTheme.bodyMedium,
+                    const SizedBox(height: 8),
+                    Text(
+                      'No hay rutas de transporte público disponibles para este viaje. Considera usar otras opciones de transporte.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -397,10 +456,10 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: () {
-                    // TODO: Implementar ver detalles de la ruta
+                    _showRouteDetails(suggestion);
                   },
                   icon: const Icon(Icons.info_outline, size: 16),
-                  label: const Text('Detalles'),
+                  label: const Text('Ver Ruta'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -412,7 +471,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    // TODO: Implementar seleccionar esta ruta
+                    _showRouteDetails(suggestion);
                   },
                   icon: const Icon(Icons.check, size: 16),
                   label: const Text('Seleccionar'),
@@ -430,5 +489,42 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
         ],
       ),
     );
+  }
+
+  void _showRouteDetails(RouteSuggestionModel suggestion) async {
+    // Obtener la ubicación actual del usuario si no está disponible
+    double userLat = widget.userLatitude ?? 0.0;
+    double userLng = widget.userLongitude ?? 0.0;
+    
+    if (userLat == 0.0 && userLng == 0.0) {
+      try {
+        final position = await LocationService.getCurrentLocation();
+        if (position != null) {
+          userLat = position.latitude;
+          userLng = position.longitude;
+        }
+      } catch (e) {
+        print('❌ Error getting user location: $e');
+        // Usar coordenadas por defecto de San Luis Potosí
+        userLat = 22.1565;
+        userLng = -100.9855;
+      }
+    }
+
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RouteDetailScreen(
+            routeSuggestion: suggestion,
+            destinationAddress: widget.destinationAddress ?? 'Destino',
+            userLatitude: userLat,
+            userLongitude: userLng,
+            destinationLatitude: widget.destinationLatitude ?? 0.0,
+            destinationLongitude: widget.destinationLongitude ?? 0.0,
+          ),
+        ),
+      );
+    }
   }
 } 
