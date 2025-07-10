@@ -71,152 +71,155 @@ class _HelpModalState extends State<HelpModal> {
 
     return Dialog(
       backgroundColor: Colors.transparent,
-      child: Container(
-        width: double.infinity,
-        height: 400,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, 5),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            width: double.infinity,
+            constraints: BoxConstraints(
+              maxHeight: constraints.maxHeight * 0.9,
+              minHeight: 200,
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            // Header con progreso
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: _steps[_currentStep].color.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-              ),
-              child: Column(
-                children: [
-                  Row(
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header con progreso
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _steps[_currentStep].color.withOpacity(0.1),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          TextButton(
+                            onPressed: _skipTutorial,
+                            child: const Text(
+                              'Saltar',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                          Text(
+                            '${_currentStep + 1} de $_totalSteps',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Barra de progreso
+                      LinearProgressIndicator(
+                        value: (_currentStep + 1) / _totalSteps,
+                        backgroundColor: Colors.grey.shade300,
+                        valueColor: AlwaysStoppedAnimation<Color>(_steps[_currentStep].color),
+                      ),
+                    ],
+                  ),
+                ),
+                // Contenido del step
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Icono
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: _steps[_currentStep].color.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(35),
+                          ),
+                          child: Icon(
+                            _steps[_currentStep].icon,
+                            size: 36,
+                            color: _steps[_currentStep].color,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        // Título
+                        Text(
+                          _steps[_currentStep].title,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 14),
+                        // Descripción
+                        Text(
+                          _steps[_currentStep].description,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                // Botones de navegación
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(
-                        onPressed: _skipTutorial,
-                        child: const Text(
-                          'Saltar',
-                          style: TextStyle(color: Colors.grey),
+                      // Botón anterior
+                      if (_currentStep > 0)
+                        TextButton(
+                          onPressed: _previousStep,
+                          child: const Text(
+                            'Anterior',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        )
+                      else
+                        const SizedBox(width: 80),
+                      // Botón siguiente/finalizar
+                      ElevatedButton(
+                        onPressed: _nextStep,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _steps[_currentStep].color,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
                         ),
-                      ),
-                      Text(
-                        '${_currentStep + 1} de $_totalSteps',
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
+                        child: Text(
+                          _currentStep == _totalSteps - 1 ? '¡Comenzar!' : 'Siguiente',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  // Barra de progreso
-                  LinearProgressIndicator(
-                    value: (_currentStep + 1) / _totalSteps,
-                    backgroundColor: Colors.grey.shade300,
-                    valueColor: AlwaysStoppedAnimation<Color>(_steps[_currentStep].color),
-                  ),
-                ],
-              ),
-            ),
-
-            // Contenido del step
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(30),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Icono
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: _steps[_currentStep].color.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(40),
-                      ),
-                      child: Icon(
-                        _steps[_currentStep].icon,
-                        size: 40,
-                        color: _steps[_currentStep].color,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-
-                    // Título
-                    Text(
-                      _steps[_currentStep].title,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Descripción
-                    Text(
-                      _steps[_currentStep].description,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey,
-                        height: 1.5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
                 ),
-              ),
+              ],
             ),
-
-            // Botones de navegación
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Botón anterior
-                  if (_currentStep > 0)
-                    TextButton(
-                      onPressed: _previousStep,
-                      child: const Text(
-                        'Anterior',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    )
-                  else
-                    const SizedBox(width: 80),
-
-                  // Botón siguiente/finalizar
-                  ElevatedButton(
-                    onPressed: _nextStep,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _steps[_currentStep].color,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                    ),
-                    child: Text(
-                      _currentStep == _totalSteps - 1 ? '¡Comenzar!' : 'Siguiente',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
