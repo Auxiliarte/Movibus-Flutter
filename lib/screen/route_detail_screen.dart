@@ -13,14 +13,14 @@ class RouteDetailScreen extends StatefulWidget {
   final double destinationLongitude;
 
   const RouteDetailScreen({
-    Key? key,
+    super.key,
     required this.routeSuggestion,
     required this.destinationAddress,
     required this.userLatitude,
     required this.userLongitude,
     required this.destinationLatitude,
     required this.destinationLongitude,
-  }) : super(key: key);
+  });
 
   @override
   State<RouteDetailScreen> createState() => _RouteDetailScreenState();
@@ -48,12 +48,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   }
 
   void _initializeMap() {
-    // Debug: Imprimir coordenadas para verificar
-    print('🗺️ Inicializando mapa con coordenadas:');
-    print('👤 Usuario: ${widget.userLatitude}, ${widget.userLongitude}');
-    print('🚌 Estación partida: ${widget.routeSuggestion.departureStation.latitude}, ${widget.routeSuggestion.departureStation.longitude}');
-    print('🏁 Estación llegada: ${widget.routeSuggestion.arrivalStation.latitude}, ${widget.routeSuggestion.arrivalStation.longitude}');
-    print('🎯 Destino: ${widget.destinationLatitude}, ${widget.destinationLongitude}');
     
     _markers = {
       // Marcador de ubicación del usuario
@@ -111,7 +105,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     for (int i = 0; i < widget.routeSuggestion.intermediateStations.length; i++) {
       final station = widget.routeSuggestion.intermediateStations[i];
       if (station.latitude != 0.0 && station.longitude != 0.0) {
-        print('📍 Agregando estación intermedia: ${station.name} (${station.latitude}, ${station.longitude})');
         _markers.add(
           Marker(
             markerId: MarkerId('intermediate_${station.id}'),
@@ -123,8 +116,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             ),
           ),
         );
-      } else {
-        print('⚠️ Omitiendo estación intermedia ${station.name} con coordenadas inválidas: (${station.latitude}, ${station.longitude})');
       }
     }
 
@@ -508,7 +499,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color.withOpacity(0.3)),
+        side: BorderSide(color: color.withValues(alpha: 0.3)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -517,7 +508,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, color: color, size: 24),
@@ -624,8 +615,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   void _fitBounds() {
     if (_mapController == null || _markers.isEmpty) return;
 
-    print('🗺️ Ajustando vista del mapa...');
-    
     double minLat = double.infinity;
     double maxLat = -double.infinity;
     double minLng = double.infinity;
@@ -633,15 +622,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
 
     // Filtrar solo marcadores con coordenadas válidas (no 0.0, 0.0)
     final validMarkers = _markers.where((marker) {
-      final isValid = marker.position.latitude != 0.0 && marker.position.longitude != 0.0;
-      print('📍 Marcador ${marker.markerId.value}: ${marker.position.latitude}, ${marker.position.longitude} - Válido: $isValid');
-      return isValid;
+      return marker.position.latitude != 0.0 && marker.position.longitude != 0.0;
     }).toList();
 
-    print('🗺️ Marcadores válidos: ${validMarkers.length} de ${_markers.length}');
-
     if (validMarkers.isEmpty) {
-      print('❌ No hay marcadores válidos, usando posición por defecto');
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
           const LatLng(22.1565, -100.9855), // San Luis Potosí centro
@@ -658,12 +642,9 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       maxLng = max(maxLng, marker.position.longitude);
     }
 
-    print('🗺️ Bounds válidos: SW(${minLat}, ${minLng}) NE(${maxLat}, ${maxLng})');
-
     // Verificar que las coordenadas son válidas
     if (minLat == double.infinity || maxLat == -double.infinity || 
         minLng == double.infinity || maxLng == -double.infinity) {
-      print('❌ Coordenadas inválidas después del filtrado, usando posición por defecto');
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
           const LatLng(22.1565, -100.9855), // San Luis Potosí centro

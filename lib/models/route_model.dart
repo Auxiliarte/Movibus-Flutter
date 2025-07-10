@@ -69,7 +69,6 @@ class StationModel {
   });
 
   factory StationModel.fromJson(Map<String, dynamic> json) {
-    print('🔍 Parseando estación: $json');
     try {
       return StationModel(
         id: json['id'] ?? 0,
@@ -79,8 +78,6 @@ class StationModel {
         order: json['order'] ?? 0,
       );
     } catch (e) {
-      print('❌ Error parseando estación: $e');
-      print('❌ JSON problemático: $json');
       rethrow;
     }
   }

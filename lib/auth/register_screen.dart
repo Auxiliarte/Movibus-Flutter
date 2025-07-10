@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/widgets/Auth/register/Step1Content.dart';
-import 'package:movibus/widgets/Auth/register/Step2Content.dart';
-import 'package:movibus/widgets/Auth/register/Step3Content.dart';
-import '../widgets/LoadingScreen.dart';
+import 'package:movibus/widgets/Auth/register/step1_content.dart';
+import 'package:movibus/widgets/Auth/register/step2_content.dart';
+import 'package:movibus/widgets/Auth/register/step3_content.dart';
+import '../widgets/loading_screen.dart';
 import '../widgets/custom_text_form_field.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -58,7 +58,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       Future.delayed(const Duration(seconds: 2), () {
-        Navigator.pushReplacementNamed(context, '/Welcome');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/Welcome');
+        }
       });
     }
   }
@@ -183,13 +185,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
+                                backgroundColor: WidgetStateProperty.all(
                                   const Color(0xFFA13CF2),
                                 ),
-                                foregroundColor: MaterialStateProperty.all(
+                                foregroundColor: WidgetStateProperty.all(
                                   Colors.white,
                                 ),
-                                shape: MaterialStateProperty.all<
+                                shape: WidgetStateProperty.all<
                                   RoundedRectangleBorder
                                 >(
                                   RoundedRectangleBorder(

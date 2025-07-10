@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:movibus/screen/coupon_promo_screen.dart';
-import 'package:movibus/screen/profile_Editpersonal_screen.dart';
-import 'package:movibus/screen/profile_EditPass_screen.dart';
+import 'package:movibus/screen/profile_edit_personal_screen.dart';
+import 'package:movibus/screen/profile_edit_pass_screen.dart';
 import 'package:movibus/screen/profile_edit_screen.dart';
 import 'package:movibus/screen/profile_mail_screen.dart';
 import 'package:movibus/screen/route_bus_screen.dart';

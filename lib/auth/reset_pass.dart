@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movibus/widgets/Auth/ResetPassword/verification_code_input.dart';
-import '../widgets/LoadingScreen.dart';
+import '../widgets/loading_screen.dart';
 import '../widgets/custom_text_form_field.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -276,13 +276,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             width: double.infinity,
                             child: ElevatedButton(
                               style: ButtonStyle(
-                                backgroundColor: MaterialStateProperty.all(
+                                backgroundColor: WidgetStateProperty.all(
                                   const Color(0xFFA13CF2),
                                 ),
-                                foregroundColor: MaterialStateProperty.all(
+                                foregroundColor: WidgetStateProperty.all(
                                   Colors.white,
                                 ),
-                                shape: MaterialStateProperty.all<
+                                shape: WidgetStateProperty.all<
                                   RoundedRectangleBorder
                                 >(
                                   RoundedRectangleBorder(

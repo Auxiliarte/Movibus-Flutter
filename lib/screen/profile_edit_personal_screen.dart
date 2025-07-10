@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
-import 'package:movibus/widgets/profile/profile_editForm.dart';
+import 'package:movibus/widgets/profile/profile_edit_form.dart';
 
 class ProfileEditpersonal extends StatefulWidget {
   const ProfileEditpersonal({super.key});
