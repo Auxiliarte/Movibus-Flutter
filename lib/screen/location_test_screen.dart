@@ -3,6 +3,7 @@ import '../services/location_api_service.dart';
 import '../services/location_service.dart';
 import '../widgets/Home/nearest_station_widget.dart';
 import '../widgets/Home/route_suggestions_widget.dart';
+import '../widgets/location_permission_test.dart';
 
 class LocationTestScreen extends StatefulWidget {
   const LocationTestScreen({super.key});
@@ -17,6 +18,8 @@ class _LocationTestScreenState extends State<LocationTestScreen> {
   bool isLoadingRoutes = false;
   bool isLoadingTracking = false;
   String? error;
+  
+
 
   @override
   void initState() {
@@ -77,6 +80,11 @@ class _LocationTestScreenState extends State<LocationTestScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Widget de test de permisos
+          const LocationPermissionTest(),
+          
+          const SizedBox(height: 20),
+          
           // Widget de estación más cercana
           const NearestStationWidget(),
           
