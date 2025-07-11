@@ -142,7 +142,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                     Icon(Icons.map, size: 20),
                     SizedBox(width: 8),
                     Text(
-                      'Ver Estaciones',
+                      'Ver Paradas',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -335,7 +335,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
-                                                  '${route.totalStations} estaciones',
+                                                  '${route.totalStations} paradas',
                                                   style: const TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey,

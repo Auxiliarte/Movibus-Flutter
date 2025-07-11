@@ -241,7 +241,7 @@ class _StationListWithETAState extends State<StationListWithETA> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            'Estaciones de la ruta',
+            'Paradas de la ruta',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -273,7 +273,7 @@ class _StationListWithETAState extends State<StationListWithETA> {
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            'Estaciones de la ruta',
+            'Paradas de la ruta',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),

@@ -102,10 +102,13 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 8,
               children: [
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.location_on,
@@ -113,10 +116,14 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                       size: 24,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      'Estación Más Cercana',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Flexible(
+                      child: Text(
+                        'Parada Más Cercana',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ],
@@ -273,7 +280,7 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Presiona "Actualizar" para encontrar la estación más cercana a tu ubicación',
+                            'Presiona "Actualizar" para encontrar la parada más cercana a tu ubicación',
                             style: theme.textTheme.bodySmall,
                           ),
                         ],
@@ -367,60 +374,13 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${route['total_stations']} estaciones en total',
+                    '${route['total_stations']} paradas en total',
                     style: theme.textTheme.bodyMedium,
                   ),
                 ],
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: Implementar navegación a la estación
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Función de navegación próximamente disponible'),
-                      backgroundColor: Colors.blue,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.directions, size: 16),
-                label: const Text('Direcciones'),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  // TODO: Implementar ver detalles de la ruta
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Función de detalles próximamente disponible'),
-                      backgroundColor: Colors.blue,
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.info_outline, size: 16),
-                label: const Text('Ver Ruta'),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ),
       ],
     );

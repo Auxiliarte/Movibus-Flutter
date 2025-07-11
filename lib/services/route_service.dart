@@ -67,7 +67,7 @@ class RouteService {
         throw Exception("❌ Error en la respuesta: ${data['message']}");
       }
     } else {
-      throw Exception("❌ Error al cargar estaciones: ${response.body}");
+      throw Exception("❌ Error al cargar paradas: ${response.body}");
     }
   }
 }

@@ -553,7 +553,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             children: [
               _buildDetailRow('Nombre', widget.routeSuggestion.routeName),
               _buildDetailRow('Descripción', widget.routeSuggestion.routeDescription),
-              _buildDetailRow('Total de estaciones', '${widget.routeSuggestion.totalStations}'),
+              _buildDetailRow('Total de paradas', '${widget.routeSuggestion.totalStations}'),
               _buildDetailRow('Puntuación', '${(widget.routeSuggestion.score * 100).toStringAsFixed(0)}%'),
             ],
           ),

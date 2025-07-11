@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Movibus-Flutter",
+            "name": "Moventra-Flutter",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "Movibus-Flutter (profile mode)",
+            "name": "Moventra-Flutter (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "Movibus-Flutter (release mode)",
+            "name": "Moventra-Flutter (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

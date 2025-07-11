@@ -41,13 +41,13 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
 
   Future<void> _loadRouteStations() async {
     try {
-      print('🔄 Cargando estaciones para la ruta ${widget.route.id}');
+      print('🔄 Cargando paradas para la ruta ${widget.route.id}');
       final response = await RouteService.fetchRouteStations(
         getBackendUrl(),
         widget.route.id,
       );
       
-      print('✅ Estaciones cargadas: ${response.stations.length}');
+      print('✅ Paradas cargadas: ${response.stations.length}');
       
       setState(() {
         _stations = response.stations;
@@ -146,7 +146,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 16),
-                  Text('Cargando estaciones...'),
+                  Text('Cargando paradas...'),
                 ],
               ),
             )
@@ -228,7 +228,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  '${_stations.length} estaciones',
+                                  '${_stations.length} paradas',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey,
@@ -303,7 +303,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
                                         ),
                                         const SizedBox(width: 8),
                                         Text(
-                                          'Estaciones',
+                                          'Paradas',
                                           style: const TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.w600,
