@@ -20,30 +20,41 @@ class StationETAWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      color: _getCardColor(),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _getBorderColor(),
+              width: 1,
+            ),
+          ),
           child: Row(
             children: [
               // Icono de estación
               Container(
-                width: 40,
-                height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: _getIconBackgroundColor(),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(24),
                 ),
                 child: Icon(
                   _getStationIcon(),
                   color: _getIconColor(),
-                  size: 20,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               
               // Información de la estación
               Expanded(
@@ -185,6 +196,16 @@ class StationETAWidget extends StatelessWidget {
       return AppColors.lightPrimaryButton;
     }
   }
+
+  Color _getBorderColor() {
+    if (isCurrentStation) {
+      return Colors.green[200]!;
+    } else if (isNextStation) {
+      return Colors.blue[200]!;
+    } else {
+      return Colors.grey[200]!;
+    }
+  }
 }
 
 class StationListWithETA extends StatefulWidget {
@@ -265,20 +286,28 @@ class _StationListWithETAState extends State<StationListWithETA> {
 
   Widget _buildLoadingStation() {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      elevation: 3,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
             Container(
-              width: 40,
-              height: 40,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
                 color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(24),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,31 +361,56 @@ class _StationListWithETAState extends State<StationListWithETA> {
   }
 
   Widget _buildEmptyStations() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(
-              Icons.place_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No hay estaciones disponibles',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey[600],
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.grey[200]!,
+            width: 1,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                child: Icon(
+                  Icons.place_outlined,
+                  size: 40,
+                  color: Colors.grey[400],
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Esta ruta no tiene estaciones configuradas',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[500],
+              const SizedBox(height: 16),
+              Text(
+                'No hay estaciones disponibles',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                'Esta ruta no tiene estaciones configuradas',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey[500],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -83,19 +83,37 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
   Widget _buildLoadingCard() {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Row(
           children: [
-            const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.lightPrimaryButton),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.lightPrimaryButton.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.lightPrimaryButton),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,8 +122,10 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                     'Buscando autobús...',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     'Actualizando información en tiempo real',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -124,17 +144,36 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
   Widget _buildErrorCard() {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.red[50],
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.red[200]!,
+            width: 1,
+          ),
+        ),
         child: Row(
           children: [
-            Icon(
-              Icons.error_outline,
-              color: Colors.red[700],
-              size: 24,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.error_outline,
+                color: Colors.red[700],
+                size: 24,
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,6 +185,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                       color: Colors.red[700],
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     'No se pudo obtener información del autobús',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -155,10 +195,16 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                 ],
               ),
             ),
-            IconButton(
-              onPressed: _loadTrackingInfo,
-              icon: const Icon(Icons.refresh),
-              color: Colors.red[700],
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: _loadTrackingInfo,
+                icon: const Icon(Icons.refresh),
+                color: Colors.red[700],
+              ),
             ),
           ],
         ),
@@ -169,17 +215,36 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
   Widget _buildNoBusCard() {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.orange[50],
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.orange[200]!,
+            width: 1,
+          ),
+        ),
         child: Row(
           children: [
-            Icon(
-              Icons.directions_bus_outlined,
-              color: Colors.orange[700],
-              size: 24,
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(
+                Icons.directions_bus_outlined,
+                color: Colors.orange[700],
+                size: 24,
+              ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,6 +256,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                       color: Colors.orange[700],
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     _trackingInfo?['message'] ?? 'No hay autobús en esta ruta actualmente',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -200,10 +266,16 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                 ],
               ),
             ),
-            IconButton(
-              onPressed: _loadTrackingInfo,
-              icon: const Icon(Icons.refresh),
-              color: Colors.orange[700],
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                onPressed: _loadTrackingInfo,
+                icon: const Icon(Icons.refresh),
+                color: Colors.orange[700],
+              ),
             ),
           ],
         ),
@@ -219,21 +291,40 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.green[50],
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.green[200]!,
+            width: 1,
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header con información del chofer
             Row(
               children: [
-                Icon(
-                  Icons.directions_bus,
-                  color: Colors.green[700],
-                  size: 24,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Icon(
+                    Icons.directions_bus,
+                    color: Colors.green[700],
+                    size: 24,
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,6 +336,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                           color: Colors.green[700],
                         ),
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         'Chofer: ${info['driverName']}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -255,22 +347,23 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.green[100],
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
                     info['status'],
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.green[700],
                       fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             // Información de ubicación actual
             if (currentLocation != null) ...[
@@ -280,7 +373,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                 subtitle: '${currentLocation['latitude'].toStringAsFixed(4)}, ${currentLocation['longitude'].toStringAsFixed(4)}',
                 color: Colors.blue[700]!,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
 
             // Estación más cercana
@@ -291,7 +384,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                 subtitle: '${nearestStation['name']} (${nearestStation['distance'].toStringAsFixed(0)}m)',
                 color: Colors.purple[700]!,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
 
             // Tiempo estimado de llegada
@@ -302,7 +395,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                 subtitle: _formatEstimatedTime(estimatedArrival),
                 color: Colors.orange[700]!,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
             ],
 
             // Última actualización
@@ -315,18 +408,25 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
               ),
             ],
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             
             // Botón de actualizar
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton.icon(
-                  onPressed: _loadTrackingInfo,
-                  icon: const Icon(Icons.refresh, size: 16),
-                  label: const Text('Actualizar'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.green[700],
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextButton.icon(
+                    onPressed: _loadTrackingInfo,
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Actualizar'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.green[700],
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
                   ),
                 ),
               ],
