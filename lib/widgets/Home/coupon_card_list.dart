@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/themes/app_colors.dart';
+import 'package:moventra/themes/app_colors.dart';
 
 class CategoryButton extends StatelessWidget {
   final String label;

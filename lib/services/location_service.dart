@@ -53,7 +53,7 @@ class LocationService {
         // Intentar solicitar permisos
         final granted = await requestLocationPermission();
         if (!granted) {
-          throw Exception('Permisos de ubicación denegados. Por favor, habilita los permisos de ubicación en Configuración > Privacidad y Seguridad > Ubicación > Movibus');
+          throw Exception('Permisos de ubicación denegados. Por favor, habilita los permisos de ubicación en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
         }
       }
 
@@ -73,7 +73,7 @@ class LocationService {
       }
       
       if (permission == LocationPermission.deniedForever) {
-        throw Exception('Permisos de ubicación denegados permanentemente. Por favor, habilita los permisos en Configuración > Privacidad y Seguridad > Ubicación > Movibus');
+        throw Exception('Permisos de ubicación denegados permanentemente. Por favor, habilita los permisos en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
       }
 
       // Obtener ubicación con timeout más largo para iOS
@@ -88,7 +88,7 @@ class LocationService {
       if (e.toString().contains('timeout')) {
         throw Exception('Tiempo de espera agotado al obtener la ubicación. Verifica que el GPS esté habilitado y que tengas buena señal.');
       } else if (e.toString().contains('denied')) {
-        throw Exception('Permisos de ubicación denegados. Ve a Configuración > Privacidad y Seguridad > Ubicación > Movibus y selecciona "Mientras usas la app"');
+        throw Exception('Permisos de ubicación denegados. Ve a Configuración > Privacidad y Seguridad > Ubicación > Moventra y selecciona "Mientras usas la app"');
       } else {
         throw Exception('Error obteniendo ubicación: $e');
       }

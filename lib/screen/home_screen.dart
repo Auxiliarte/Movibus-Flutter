@@ -1,20 +1,20 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:movibus/themes/app_colors.dart';
-import 'package:movibus/widgets/Home/coupon_card.dart';
-import 'package:movibus/widgets/Home/favorite_card.dart';
-import 'package:movibus/widgets/Home/search_input.dart';
-import 'package:movibus/widgets/Home/enhanced_search_input.dart';
-import 'package:movibus/widgets/Home/suggested_route_card.dart';
-import 'package:movibus/widgets/Home/nearest_station_widget.dart';
-import 'package:movibus/widgets/Home/route_suggestions_widget.dart';
-import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
+import 'package:moventra/themes/app_colors.dart';
+import 'package:moventra/widgets/Home/coupon_card.dart';
+import 'package:moventra/widgets/Home/favorite_card.dart';
+import 'package:moventra/widgets/Home/search_input.dart';
+import 'package:moventra/widgets/Home/enhanced_search_input.dart';
+import 'package:moventra/widgets/Home/suggested_route_card.dart';
+import 'package:moventra/widgets/Home/nearest_station_widget.dart';
+import 'package:moventra/widgets/Home/route_suggestions_widget.dart';
+import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
 import '../models/coupon.dart';
 import '../services/coupon_service.dart';
 import '../services/location_service.dart';
-import 'package:movibus/widgets/Home/place_autocomplete_field.dart';
-import 'package:movibus/widgets/Home/help_modal.dart';
-import 'package:movibus/widgets/Home/destination_picker_modal.dart';
+import 'package:moventra/widgets/Home/place_autocomplete_field.dart';
+import 'package:moventra/widgets/Home/help_modal.dart';
+import 'package:moventra/widgets/Home/destination_picker_modal.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class HomeScreen extends StatefulWidget {

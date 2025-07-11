@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/widgets/Auth/ResetPassword/verification_code_input.dart';
+import 'package:moventra/widgets/Auth/ResetPassword/verification_code_input.dart';
 import '../widgets/loading_screen.dart';
 import '../widgets/custom_text_form_field.dart';
 

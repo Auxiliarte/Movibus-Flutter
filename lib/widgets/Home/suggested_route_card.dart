@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/screen/route_bus_screen.dart';
-import 'package:movibus/themes/app_colors.dart';
+import 'package:moventra/screen/route_bus_screen.dart';
+import 'package:moventra/themes/app_colors.dart';
 
 class SuggestedRouteCard extends StatelessWidget {
   final String ruta;

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/themes/app_colors.dart';
-import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
-import 'package:movibus/widgets/profile/menu_item_tile.dart';
-import 'package:movibus/widgets/profile/preferences_switches.dart';
-import 'package:movibus/widgets/profile/profile_header.dart';
-import 'package:movibus/services/auth_service.dart';
+import 'package:moventra/themes/app_colors.dart';
+import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
+import 'package:moventra/widgets/profile/menu_item_tile.dart';
+import 'package:moventra/widgets/profile/preferences_switches.dart';
+import 'package:moventra/widgets/profile/profile_header.dart';
+import 'package:moventra/services/auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

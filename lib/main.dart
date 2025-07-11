@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/screen/coupon_promo_screen.dart';
-import 'package:movibus/screen/profile_edit_personal_screen.dart';
-import 'package:movibus/screen/profile_edit_pass_screen.dart';
-import 'package:movibus/screen/profile_edit_screen.dart';
-import 'package:movibus/screen/profile_mail_screen.dart';
-import 'package:movibus/screen/route_bus_screen.dart';
-import 'package:movibus/screen/router_history.dart';
+import 'package:moventra/screen/coupon_promo_screen.dart';
+import 'package:moventra/screen/profile_edit_personal_screen.dart';
+import 'package:moventra/screen/profile_edit_pass_screen.dart';
+import 'package:moventra/screen/profile_edit_screen.dart';
+import 'package:moventra/screen/profile_mail_screen.dart';
+import 'package:moventra/screen/route_bus_screen.dart';
+import 'package:moventra/screen/router_history.dart';
 import 'splash_screen.dart';
-import 'package:movibus/auth/login_screen.dart';
-import 'package:movibus/auth/register_screen.dart';
-import 'package:movibus/auth/reset_pass.dart';
+import 'package:moventra/auth/login_screen.dart';
+import 'package:moventra/auth/register_screen.dart';
+import 'package:moventra/auth/reset_pass.dart';
 import 'screen/home_screen.dart';
 import 'screen/settings.dart';
 import 'screen/statistics_screen.dart';
 import 'screen/routes_screen.dart';
 import 'welcome.dart';
-import 'package:movibus/providers/themeprovider.dart';
-import 'package:movibus/screen/profile_screen.dart';
-import 'package:movibus/screen/location_test_screen.dart';
-import 'package:movibus/screen/location_picker_screen.dart';
+import 'package:moventra/providers/themeprovider.dart';
+import 'package:moventra/screen/profile_screen.dart';
+import 'package:moventra/screen/location_test_screen.dart';
+import 'package:moventra/screen/location_picker_screen.dart';
 import 'package:provider/provider.dart';
 import 'themes/theme.dart';
 
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
-      title: 'Movibus',
+      title: 'Moventra',
       debugShowCheckedModeBanner: false,
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,

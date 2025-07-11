@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.movibus" "\0"
-            VALUE "FileDescription", "movibus" "\0"
+            VALUE "CompanyName", "com.moventra" "\0"
+            VALUE "FileDescription", "Moventra" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "movibus" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2025 com.movibus. All rights reserved." "\0"
-            VALUE "OriginalFilename", "movibus.exe" "\0"
-            VALUE "ProductName", "movibus" "\0"
+            VALUE "InternalName", "Moventra" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 com.moventra. All rights reserved." "\0"
+            VALUE "OriginalFilename", "Moventra.exe" "\0"
+            VALUE "ProductName", "Moventra" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

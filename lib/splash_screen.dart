@@ -3,9 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 
-import 'package:movibus/auth/login_screen.dart';
-import 'package:movibus/screen/home_screen.dart';
-import 'package:movibus/services/auth_service.dart';
+import 'package:moventra/auth/login_screen.dart';
+import 'package:moventra/screen/home_screen.dart';
+import 'package:moventra/services/auth_service.dart';
 import 'welcome.dart';
 
 class SplashScreen extends StatefulWidget {

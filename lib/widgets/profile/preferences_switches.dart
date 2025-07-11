@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/providers/themeprovider.dart';
+import 'package:moventra/providers/themeprovider.dart';
 import 'package:provider/provider.dart';
 
 class PreferencesSwitches extends StatelessWidget {

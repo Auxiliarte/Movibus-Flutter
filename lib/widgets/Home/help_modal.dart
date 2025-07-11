@@ -18,7 +18,7 @@ class _HelpModalState extends State<HelpModal> {
 
   final List<HelpStep> _steps = [
     HelpStep(
-      title: '¡Bienvenido a Movibus!',
+      title: '¡Bienvenido a Moventra!',
       description: 'Te ayudaremos a planificar tu viaje en transporte público de San Luis Potosí.',
       icon: Icons.directions_bus,
       color: Colors.blue,

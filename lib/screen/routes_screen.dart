@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
+import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
 import '../models/route_model.dart';
 import '../services/route_service.dart';
 import 'route_map_screen.dart';

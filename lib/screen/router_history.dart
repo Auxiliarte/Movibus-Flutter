@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/screen/home_screen.dart';
-import 'package:movibus/themes/app_colors.dart';
+import 'package:moventra/screen/home_screen.dart';
+import 'package:moventra/themes/app_colors.dart';
 
-import 'package:movibus/widgets/bottom_notifications.dart';
+import 'package:moventra/widgets/bottom_notifications.dart';
 
 class RouterHistorialScreen extends StatelessWidget {
   const RouterHistorialScreen({super.key});

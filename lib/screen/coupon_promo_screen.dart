@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/themes/app_colors.dart';
-import 'package:movibus/widgets/Home/coupon_card_list.dart';
-import 'package:movibus/widgets/Home/coupon_promo_card.dart';
-import 'package:movibus/widgets/custom_bottom_nav_bar.dart'; // Importa tu navbar
+import 'package:moventra/themes/app_colors.dart';
+import 'package:moventra/widgets/Home/coupon_card_list.dart';
+import 'package:moventra/widgets/Home/coupon_promo_card.dart';
+import 'package:moventra/widgets/custom_bottom_nav_bar.dart'; // Importa tu navbar
 
 class CouponPromoHistorialScreen extends StatefulWidget {
   const CouponPromoHistorialScreen({super.key});

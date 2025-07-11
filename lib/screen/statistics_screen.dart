@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/themes/app_colors.dart';
-import 'package:movibus/widgets/custom_bottom_nav_bar.dart';
+import 'package:moventra/themes/app_colors.dart';
+import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});

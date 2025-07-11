@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/widgets/Auth/register/step1_content.dart';
-import 'package:movibus/widgets/Auth/register/step2_content.dart';
-import 'package:movibus/widgets/Auth/register/step3_content.dart';
+import 'package:moventra/widgets/Auth/register/step1_content.dart';
+import 'package:moventra/widgets/Auth/register/step2_content.dart';
+import 'package:moventra/widgets/Auth/register/step3_content.dart';
 import '../widgets/loading_screen.dart';
 import '../widgets/custom_text_form_field.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:movibus/widgets/routes/custom_draggable_sheet.dart';
-import 'package:movibus/widgets/routes/rating_sheet.dart';
+import 'package:moventra/widgets/routes/custom_draggable_sheet.dart';
+import 'package:moventra/widgets/routes/rating_sheet.dart';
 import '../models/route_model.dart';
 
 class RouteMapScreen extends StatefulWidget {

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:movibus/widgets/custom_text_form_field.dart';
+import 'package:moventra/widgets/custom_text_form_field.dart';
 
 class Step1Content extends StatelessWidget {
   final TextEditingController nombreController;
