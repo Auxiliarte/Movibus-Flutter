@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/route_suggestion_model.dart';
 import '../themes/app_colors.dart';
+import '../services/driver_tracking_service.dart';
+import '../widgets/Home/bus_tracking_widget.dart';
+import '../widgets/Home/station_eta_widget.dart';
 
 class RouteDetailScreen extends StatefulWidget {
   final RouteSuggestionModel routeSuggestion;
@@ -36,7 +39,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _initializeMap();
   }
 
@@ -239,6 +242,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               tabs: const [
                 Tab(text: 'Instrucciones'),
                 Tab(text: 'Mapa'),
+                Tab(text: 'Tracking'),
                 Tab(text: 'Detalles'),
               ],
             ),
@@ -248,11 +252,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [
-                _buildInstructionsTab(),
-                _buildMapTab(),
-                _buildDetailsTab(),
-              ],
+                          children: [
+              _buildInstructionsTab(),
+              _buildMapTab(),
+              _buildTrackingTab(),
+              _buildDetailsTab(),
+            ],
             ),
           ),
         ],
@@ -357,6 +362,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               _buildLegendDot(Colors.orange, isDashed: true),
               const SizedBox(width: 4),
               const Text('Camina al destino', style: TextStyle(fontSize: 12)),
+              const SizedBox(width: 12),
+              _buildLegendDot(Colors.red),
+              const SizedBox(width: 4),
+              const Text('Autobús', style: TextStyle(fontSize: 12)),
             ],
           ),
         ),
@@ -369,29 +378,148 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                    (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
-                    (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
-                  ),
-                  zoom: 12,
-                ),
-                markers: _markers,
-                polylines: _polylines,
-                onMapCreated: (GoogleMapController controller) {
-                  _mapController = controller;
-                  _fitBounds();
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: DriverTrackingService.getDriverTrackingByRoute(widget.routeSuggestion.routeId),
+                builder: (context, snapshot) {
+                  Set<Marker> markers = Set.from(_markers);
+                  
+                  // Agregar marcador del autobús si hay tracking disponible
+                  if (snapshot.hasData) {
+                    final trackingData = snapshot.data!;
+                    final formattedInfo = DriverTrackingService.formatTrackingInfo(trackingData);
+                    
+                    if (formattedInfo['hasActiveDriver'] && formattedInfo['currentLocation'] != null) {
+                      final currentLocation = formattedInfo['currentLocation'];
+                      markers.add(
+                        Marker(
+                          markerId: const MarkerId('bus_location'),
+                          position: LatLng(
+                            currentLocation['latitude'],
+                            currentLocation['longitude'],
+                          ),
+                          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                          infoWindow: InfoWindow(
+                            title: 'Autobús en ruta',
+                            snippet: 'Chofer: ${formattedInfo['driverName']}',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                  
+                  return GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(
+                        (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
+                        (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
+                      ),
+                      zoom: 12,
+                    ),
+                    markers: markers,
+                    polylines: _polylines,
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController = controller;
+                      _fitBounds();
+                    },
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    zoomControlsEnabled: false,
+                  );
                 },
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
-                zoomControlsEnabled: false,
               ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildTrackingTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Widget de tracking del autobús
+          BusTrackingWidget(
+            routeId: widget.routeSuggestion.routeId,
+            routeName: widget.routeSuggestion.routeName,
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Lista de estaciones con tiempos estimados
+          FutureBuilder<Map<String, dynamic>>(
+            future: DriverTrackingService.getDriverTrackingByRoute(widget.routeSuggestion.routeId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return StationListWithETA(
+                  stations: _getAllStations(),
+                  isLoading: true,
+                );
+              }
+              
+              if (snapshot.hasError) {
+                return StationListWithETA(
+                  stations: _getAllStations(),
+                  trackingInfo: null,
+                  isLoading: false,
+                );
+              }
+              
+              final trackingData = snapshot.data;
+              final formattedInfo = trackingData != null 
+                  ? DriverTrackingService.formatTrackingInfo(trackingData)
+                  : null;
+              
+              return StationListWithETA(
+                stations: _getAllStations(),
+                trackingInfo: formattedInfo,
+                isLoading: false,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _getAllStations() {
+    final stations = <Map<String, dynamic>>[];
+    
+    // Agregar estación de partida
+    stations.add({
+      'id': widget.routeSuggestion.departureStation.id,
+      'name': widget.routeSuggestion.departureStation.name,
+      'latitude': widget.routeSuggestion.departureStation.latitude,
+      'longitude': widget.routeSuggestion.departureStation.longitude,
+      'order': widget.routeSuggestion.departureStation.order,
+    });
+    
+    // Agregar estaciones intermedias
+    for (final station in widget.routeSuggestion.intermediateStations) {
+      stations.add({
+        'id': station.id,
+        'name': station.name,
+        'latitude': station.latitude,
+        'longitude': station.longitude,
+        'order': station.order,
+      });
+    }
+    
+    // Agregar estación de llegada
+    stations.add({
+      'id': widget.routeSuggestion.arrivalStation.id,
+      'name': widget.routeSuggestion.arrivalStation.name,
+      'latitude': widget.routeSuggestion.arrivalStation.latitude,
+      'longitude': widget.routeSuggestion.arrivalStation.longitude,
+      'order': widget.routeSuggestion.arrivalStation.order,
+    });
+    
+    // Ordenar por orden
+    stations.sort((a, b) => a['order'].compareTo(b['order']));
+    
+    return stations;
   }
 
   Widget _buildLegendDot(Color color, {bool isDashed = false}) {
@@ -428,6 +556,66 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               _buildDetailRow('Total de estaciones', '${widget.routeSuggestion.totalStations}'),
               _buildDetailRow('Puntuación', '${(widget.routeSuggestion.score * 100).toStringAsFixed(0)}%'),
             ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          // Estado del autobús en tiempo real
+          FutureBuilder<Map<String, dynamic>>(
+            future: DriverTrackingService.getDriverTrackingByRoute(widget.routeSuggestion.routeId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return _buildDetailCard(
+                  title: 'Estado del Autobús',
+                  children: [
+                    _buildDetailRow('Estado', 'Cargando...'),
+                  ],
+                );
+              }
+              
+              if (snapshot.hasError) {
+                return _buildDetailCard(
+                  title: 'Estado del Autobús',
+                  children: [
+                    _buildDetailRow('Estado', 'Error de conexión'),
+                    _buildDetailRow('Mensaje', 'No se pudo obtener información'),
+                  ],
+                );
+              }
+              
+              final trackingData = snapshot.data;
+              final formattedInfo = trackingData != null 
+                  ? DriverTrackingService.formatTrackingInfo(trackingData)
+                  : null;
+              
+              if (formattedInfo == null || !formattedInfo['hasActiveDriver']) {
+                return _buildDetailCard(
+                  title: 'Estado del Autobús',
+                  children: [
+                    _buildDetailRow('Estado', 'Sin autobús activo'),
+                    _buildDetailRow('Mensaje', formattedInfo?['message'] ?? 'No hay autobús en esta ruta'),
+                  ],
+                );
+              }
+              
+              return _buildDetailCard(
+                title: 'Estado del Autobús',
+                children: [
+                  _buildDetailRow('Estado', formattedInfo['status']),
+                  _buildDetailRow('Chofer', formattedInfo['driverName']),
+                  if (formattedInfo['nearestStation'] != null) ...[
+                    _buildDetailRow('Estación más cercana', formattedInfo['nearestStation']['name']),
+                    _buildDetailRow('Distancia', '${formattedInfo['nearestStation']['distance'].toStringAsFixed(0)}m'),
+                  ],
+                  if (formattedInfo['estimatedArrivalNext'] != null) ...[
+                    _buildDetailRow('Próxima llegada', _formatEstimatedTime(formattedInfo['estimatedArrivalNext'])),
+                  ],
+                  if (formattedInfo['lastUpdated'] != null) ...[
+                    _buildDetailRow('Última actualización', _formatLastUpdated(formattedInfo['lastUpdated'])),
+                  ],
+                ],
+              );
+            },
           ),
           
           const SizedBox(height: 16),
@@ -667,5 +855,45 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         50, // padding adicional
       ),
     );
+  }
+
+  String _formatEstimatedTime(String estimatedArrival) {
+    try {
+      final dateTime = DateTime.parse(estimatedArrival);
+      final now = DateTime.now();
+      final difference = dateTime.difference(now);
+      
+      if (difference.inMinutes < 1) {
+        return 'Llegando...';
+      } else if (difference.inMinutes < 60) {
+        return '${difference.inMinutes} min';
+      } else {
+        final hours = difference.inHours;
+        final minutes = difference.inMinutes % 60;
+        return '${hours}h ${minutes}min';
+      }
+    } catch (e) {
+      return 'N/A';
+    }
+  }
+
+  String _formatLastUpdated(String lastUpdated) {
+    try {
+      final dateTime = DateTime.parse(lastUpdated);
+      final now = DateTime.now();
+      final difference = now.difference(dateTime);
+      
+      if (difference.inMinutes < 1) {
+        return 'Hace un momento';
+      } else if (difference.inMinutes < 60) {
+        return 'Hace ${difference.inMinutes} min';
+      } else if (difference.inHours < 24) {
+        return 'Hace ${difference.inHours}h';
+      } else {
+        return 'Hace ${difference.inDays} días';
+      }
+    } catch (e) {
+      return 'N/A';
+    }
   }
 } 
