@@ -16,7 +16,7 @@ class AppThemes {
       onSurface: AppColors.lightTextPrimary,
     ),
 
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
     ),
     cardColor: const Color(0xFF2A154D),
@@ -93,7 +93,7 @@ class AppThemes {
       surfaceContainerHighest: AppColors.darkMenuBackground,
       onSurface: AppColors.darkTextPrimary,
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       backgroundColor: AppColors.darkbanCoup,
     ),
     cardColor: AppColors.darkProfileHeader,
