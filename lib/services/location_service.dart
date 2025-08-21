@@ -7,28 +7,39 @@ import 'package:http/http.dart' as http;
 class LocationService {
   static const String _googleApiKey = "AIzaSyA2NeKAZRdbRsy6cSj52TJRGJdf5wtlSA4";
 
-  // Solicitar permisos de ubicación
+  // Solicitar permisos de ubicación con mejor manejo para iOS
   static Future<bool> requestLocationPermission() async {
     try {
+      print('🔍 Iniciando solicitud de permisos de ubicación...');
+      
       // En iOS, primero verificamos el estado actual
       final status = await permission_handler.Permission.location.status;
+      print('📱 Estado actual de permisos: $status');
       
       if (status.isDenied) {
+        print('🚫 Permisos denegados, solicitando...');
         // Solicitar permiso
         final result = await permission_handler.Permission.location.request();
+        print('✅ Resultado de solicitud: $result');
         return result.isGranted;
       } else if (status.isPermanentlyDenied) {
+        print('🚫 Permisos denegados permanentemente');
         // El usuario denegó permanentemente, abrir configuración
         await openAppSettings();
         return false;
       } else if (status.isRestricted) {
+        print('🚫 Permisos restringidos por configuración del dispositivo');
         // Restringido por configuración del dispositivo
         return false;
+      } else if (status.isLimited) {
+        print('⚠️ Permisos limitados (solo mientras usa la app)');
+        return true; // En iOS, limited significa que funciona mientras usa la app
       }
       
+      print('✅ Permisos ya concedidos');
       return status.isGranted;
     } catch (e) {
-      print('Error requesting location permission: $e');
+      print('❌ Error requesting location permission: $e');
       return false;
     }
   }
@@ -36,55 +47,38 @@ class LocationService {
   // Verificar si los permisos están concedidos
   static Future<bool> hasLocationPermission() async {
     try {
-      final status = await permission_handler.Permission.location.status;
-      return status.isGranted;
+      if (Platform.isIOS) {
+        // En iOS, usar Geolocator para verificar permisos
+        final permission = await Geolocator.checkPermission();
+        print('🔍 Verificando permisos con Geolocator: $permission');
+        return permission == LocationPermission.whileInUse || 
+               permission == LocationPermission.always;
+      } else {
+        // En Android, usar permission_handler
+        final status = await permission_handler.Permission.location.status;
+        print('🔍 Verificando permisos con permission_handler: $status');
+        return status.isGranted || status.isLimited;
+      }
     } catch (e) {
-      print('Error checking location permission: $e');
+      print('❌ Error checking location permission: $e');
       return false;
     }
   }
 
-  // Obtener ubicación actual con mejor manejo de errores
+  // Obtener ubicación actual con mejor manejo de errores para iOS
   static Future<Position?> getCurrentLocation() async {
     try {
-      // Verificar permisos primero
-      final hasPermission = await hasLocationPermission();
-      if (!hasPermission) {
-        // Intentar solicitar permisos
-        final granted = await requestLocationPermission();
-        if (!granted) {
-          throw Exception('Permisos de ubicación denegados. Por favor, habilita los permisos de ubicación en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
-        }
-      }
-
-      // Verificar si el GPS está habilitado
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception('Los servicios de ubicación están deshabilitados. Por favor, habilita la ubicación en Configuración > Privacidad y Seguridad > Ubicación');
-      }
-
-      // Verificar permisos de ubicación específicos de Geolocator
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception('Permisos de ubicación denegados por el sistema');
-        }
-      }
+      print('📍 Iniciando obtención de ubicación...');
       
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception('Permisos de ubicación denegados permanentemente. Por favor, habilita los permisos en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
+      if (Platform.isIOS) {
+        // En iOS, usar solo Geolocator
+        return await _getCurrentLocationIOS();
+      } else {
+        // En Android, usar el flujo completo
+        return await _getCurrentLocationAndroid();
       }
-
-      // Obtener ubicación con timeout más largo para iOS
-      final timeout = Platform.isIOS ? const Duration(seconds: 15) : const Duration(seconds: 10);
-      
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: timeout,
-      );
     } catch (e) {
-      print('Error obteniendo ubicación: $e');
+      print('❌ Error obteniendo ubicación: $e');
       if (e.toString().contains('timeout')) {
         throw Exception('Tiempo de espera agotado al obtener la ubicación. Verifica que el GPS esté habilitado y que tengas buena señal.');
       } else if (e.toString().contains('denied')) {
@@ -93,6 +87,114 @@ class LocationService {
         throw Exception('Error obteniendo ubicación: $e');
       }
     }
+  }
+
+  // Método específico para iOS
+  static Future<Position?> _getCurrentLocationIOS() async {
+    // Verificar si el GPS está habilitado
+    print('🔍 Verificando servicios de ubicación...');
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    print('📡 Servicios de ubicación: $serviceEnabled');
+    
+    if (!serviceEnabled) {
+      print('❌ Servicios de ubicación deshabilitados');
+      throw Exception('Los servicios de ubicación están deshabilitados. Por favor, habilita la ubicación en Configuración > Privacidad y Seguridad > Ubicación');
+    }
+
+    // Verificar permisos de ubicación específicos de Geolocator
+    print('🔍 Verificando permisos de Geolocator...');
+    LocationPermission permission = await Geolocator.checkPermission();
+    print('📱 Permisos de Geolocator: $permission');
+    
+    if (permission == LocationPermission.denied) {
+      print('🚫 Permisos denegados en Geolocator, solicitando...');
+      permission = await Geolocator.requestPermission();
+      print('✅ Resultado de solicitud Geolocator: $permission');
+      
+      if (permission == LocationPermission.denied) {
+        print('❌ Permisos denegados por el sistema');
+        throw Exception('Permisos de ubicación denegados por el sistema');
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      print('❌ Permisos denegados permanentemente');
+      throw Exception('Permisos de ubicación denegados permanentemente. Por favor, habilita los permisos en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
+    }
+
+    // Obtener ubicación con timeout más largo para iOS
+    final timeout = const Duration(seconds: 20);
+    print('⏱️ Timeout configurado: ${timeout.inSeconds} segundos');
+    
+    print('📍 Obteniendo posición actual...');
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+      timeLimit: timeout,
+    );
+    
+    print('✅ Ubicación obtenida: ${position.latitude}, ${position.longitude}');
+    return position;
+  }
+
+  // Método específico para Android
+  static Future<Position?> _getCurrentLocationAndroid() async {
+    // Verificar permisos primero
+    final hasPermission = await hasLocationPermission();
+    print('🔐 Permisos verificados: $hasPermission');
+    
+    if (!hasPermission) {
+      print('🚫 Sin permisos, solicitando...');
+      // Intentar solicitar permisos
+      final granted = await requestLocationPermission();
+      if (!granted) {
+        print('❌ Permisos no concedidos');
+        throw Exception('Permisos de ubicación denegados. Por favor, habilita los permisos de ubicación en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
+      }
+    }
+
+    // Verificar si el GPS está habilitado
+    print('🔍 Verificando servicios de ubicación...');
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    print('📡 Servicios de ubicación: $serviceEnabled');
+    
+    if (!serviceEnabled) {
+      print('❌ Servicios de ubicación deshabilitados');
+      throw Exception('Los servicios de ubicación están deshabilitados. Por favor, habilita la ubicación en Configuración > Privacidad y Seguridad > Ubicación');
+    }
+
+    // Verificar permisos de ubicación específicos de Geolocator
+    print('🔍 Verificando permisos de Geolocator...');
+    LocationPermission permission = await Geolocator.checkPermission();
+    print('📱 Permisos de Geolocator: $permission');
+    
+    if (permission == LocationPermission.denied) {
+      print('🚫 Permisos denegados en Geolocator, solicitando...');
+      permission = await Geolocator.requestPermission();
+      print('✅ Resultado de solicitud Geolocator: $permission');
+      
+      if (permission == LocationPermission.denied) {
+        print('❌ Permisos denegados por el sistema');
+        throw Exception('Permisos de ubicación denegados por el sistema');
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      print('❌ Permisos denegados permanentemente');
+      throw Exception('Permisos de ubicación denegados permanentemente. Por favor, habilita los permisos en Configuración > Privacidad y Seguridad > Ubicación > Moventra');
+    }
+
+    // Obtener ubicación con timeout
+    final timeout = const Duration(seconds: 10);
+    print('⏱️ Timeout configurado: ${timeout.inSeconds} segundos');
+    
+    print('📍 Obteniendo posición actual...');
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+      timeLimit: timeout,
+    );
+    
+    print('✅ Ubicación obtenida: ${position.latitude}, ${position.longitude}');
+    return position;
   }
 
   // Calcular distancia entre dos puntos
@@ -208,5 +310,82 @@ class LocationService {
   // Método para abrir configuración de la app
   static Future<void> openAppSettings() async {
     await permission_handler.openAppSettings();
+  }
+
+  // Método específico para iOS que fuerza la solicitud de permisos
+  static Future<bool> forceRequestLocationPermission() async {
+    try {
+      print('🔍 Forzando solicitud de permisos de ubicación...');
+      
+      if (Platform.isIOS) {
+        // En iOS, usar Geolocator directamente para solicitar permisos
+        LocationPermission permission = await Geolocator.checkPermission();
+        print('📱 Permisos actuales de Geolocator: $permission');
+        
+        if (permission == LocationPermission.denied) {
+          print('🚫 Permisos denegados, solicitando...');
+          permission = await Geolocator.requestPermission();
+          print('✅ Resultado de solicitud Geolocator: $permission');
+        }
+        
+        return permission == LocationPermission.whileInUse || 
+               permission == LocationPermission.always;
+      } else {
+        // En Android, usar el método normal
+        return await requestLocationPermission();
+      }
+    } catch (e) {
+      print('❌ Error forzando solicitud de permisos: $e');
+      return false;
+    }
+  }
+
+  // Método para verificar si los servicios de ubicación están habilitados
+  static Future<bool> isLocationServiceEnabled() async {
+    try {
+      return await Geolocator.isLocationServiceEnabled();
+    } catch (e) {
+      print('❌ Error verificando servicios de ubicación: $e');
+      return false;
+    }
+  }
+
+  // Método para obtener el estado actual de los permisos
+  static Future<String> getLocationPermissionStatus() async {
+    try {
+      if (Platform.isIOS) {
+        final permission = await Geolocator.checkPermission();
+        switch (permission) {
+          case LocationPermission.denied:
+            return 'Denegado';
+          case LocationPermission.deniedForever:
+            return 'Denegado Permanentemente';
+          case LocationPermission.whileInUse:
+            return 'Concedido - Mientras usa app';
+          case LocationPermission.always:
+            return 'Concedido - Siempre';
+          case LocationPermission.unableToDetermine:
+            return 'No se puede determinar';
+        }
+      } else {
+        final status = await permission_handler.Permission.location.status;
+        switch (status) {
+          case permission_handler.PermissionStatus.denied:
+            return 'Denegado';
+          case permission_handler.PermissionStatus.granted:
+            return 'Concedido';
+          case permission_handler.PermissionStatus.restricted:
+            return 'Restringido';
+          case permission_handler.PermissionStatus.limited:
+            return 'Limitado';
+          case permission_handler.PermissionStatus.permanentlyDenied:
+            return 'Denegado Permanentemente';
+          default:
+            return 'Desconocido';
+        }
+      }
+    } catch (e) {
+      return 'Error: $e';
+    }
   }
 } 

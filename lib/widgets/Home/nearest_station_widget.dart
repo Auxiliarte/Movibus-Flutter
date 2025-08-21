@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/location_api_service.dart';
 import '../../services/location_service.dart';
 import '../../models/station_model.dart';
+import 'package:geolocator/geolocator.dart';
 
 class NearestStationWidget extends StatefulWidget {
   final double? userLatitude;
@@ -62,7 +63,8 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
         latitude = widget.userLatitude!;
         longitude = widget.userLongitude!;
       } else {
-        final position = await LocationService.getCurrentLocation();
+        // Intentar obtener ubicación con el nuevo método
+        final position = await _getLocationWithPermissionRequest();
         if (position == null) {
           throw Exception('No se pudo obtener la ubicación actual');
         }
@@ -82,9 +84,31 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
       });
     } catch (e) {
       setState(() {
-        error = e.toString();
+        error = _formatErrorMessage(e.toString());
         isLoading = false;
       });
+    }
+  }
+
+  Future<Position?> _getLocationWithPermissionRequest() async {
+    try {
+      // Usar directamente el método getCurrentLocation que ya maneja los permisos
+      return await LocationService.getCurrentLocation();
+    } catch (e) {
+      print('Error en _getLocationWithPermissionRequest: $e');
+      rethrow;
+    }
+  }
+
+  String _formatErrorMessage(String error) {
+    if (error.contains('Permisos de ubicación denegados')) {
+      return 'Para usar esta función, necesitas permitir el acceso a tu ubicación.\n\nVe a Configuración > Privacidad y Seguridad > Ubicación > Moventra y selecciona "Mientras usas la app".';
+    } else if (error.contains('servicios de ubicación están deshabilitados')) {
+      return 'Los servicios de ubicación están deshabilitados en tu dispositivo.\n\nVe a Configuración > Privacidad y Seguridad > Ubicación y habilita "Servicios de ubicación".';
+    } else if (error.contains('timeout')) {
+      return 'Tiempo de espera agotado al obtener la ubicación.\n\nVerifica que el GPS esté habilitado y que tengas buena señal.';
+    } else {
+      return error;
     }
   }
 
@@ -226,6 +250,23 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                         fontSize: 12,
                       ),
                     ),
+                    if (error!.contains('Configuración')) ...[
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await LocationService.openAppSettings();
+                        },
+                        icon: const Icon(Icons.settings, size: 16),
+                        label: const Text('Abrir Configuración'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.shade600,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               )
