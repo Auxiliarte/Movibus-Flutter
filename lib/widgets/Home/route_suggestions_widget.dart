@@ -88,7 +88,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
             userLongitude: position.longitude,
             destinationLatitude: widget.destinationLatitude!,
             destinationLongitude: widget.destinationLongitude!,
-            maxWalkingDistance: 1500, // 1.5 km máximo caminando
+            maxWalkingDistance: 6000, // 6 km máximo caminando
           ).timeout(const Duration(seconds: 15));
         } catch (e) {
           print('❌ Timeout or error in API call: $e');
@@ -394,7 +394,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  suggestion.departureStation.name,
+                  suggestion.departureStation.displayName,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                   ),
@@ -413,7 +413,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  suggestion.arrivalStation.name,
+                  suggestion.arrivalStation.displayName,
                   style: theme.textTheme.bodyMedium,
                 ),
               ),

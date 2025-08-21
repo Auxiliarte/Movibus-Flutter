@@ -1,6 +1,6 @@
 class StationModel {
   final int id;
-  final String name;
+  final String? name; // Cambiar a nullable
   final double latitude;
   final double longitude;
   final int order;
@@ -12,7 +12,7 @@ class StationModel {
 
   StationModel({
     required this.id,
-    required this.name,
+    this.name, // Cambiar a opcional
     required this.latitude,
     required this.longitude,
     required this.order,
@@ -26,7 +26,7 @@ class StationModel {
   factory StationModel.fromJson(Map<String, dynamic> json) {
     return StationModel(
       id: json['id'],
-      name: json['name'],
+      name: json['name'], // Permitir null
       latitude: double.tryParse(json['latitude'].toString()) ?? 0.0,
       longitude: double.tryParse(json['longitude'].toString()) ?? 0.0,
       order: json['order'],
@@ -36,5 +36,10 @@ class StationModel {
       distanceToDestination: json['distance_to_destination']?.toDouble(),
       walkingTimeMinutes: json['walking_time_minutes']?.toDouble(),
     );
+  }
+
+  // Método para obtener el nombre de la estación o un valor por defecto
+  String get displayName {
+    return name ?? 'Estación ${id}';
   }
 } 

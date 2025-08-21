@@ -72,7 +72,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: InfoWindow(
-          title: widget.routeSuggestion.departureStation.name,
+          title: widget.routeSuggestion.departureStation.displayName,
           snippet: 'Estación de partida',
         ),
       ),
@@ -85,7 +85,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         infoWindow: InfoWindow(
-          title: widget.routeSuggestion.arrivalStation.name,
+          title: widget.routeSuggestion.arrivalStation.displayName,
           snippet: 'Estación de llegada',
         ),
       ),
@@ -275,7 +275,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           _buildInstructionCard(
             icon: Icons.directions_walk,
             title: 'Caminar a la estación',
-            subtitle: widget.routeSuggestion.departureStation.name,
+            subtitle: widget.routeSuggestion.departureStation.displayName,
             details: [
               'Distancia: ${widget.routeSuggestion.departureStation.distanceFromUser?.toStringAsFixed(0) ?? "N/A"} metros',
               'Tiempo estimado: ${widget.routeSuggestion.departureStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} minutos',
@@ -624,7 +624,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           _buildDetailCard(
             title: 'Estación de Partida',
             children: [
-              _buildDetailRow('Nombre', widget.routeSuggestion.departureStation.name),
+              _buildDetailRow('Nombre', widget.routeSuggestion.departureStation.displayName),
               _buildDetailRow('Orden', '${widget.routeSuggestion.departureStation.order}'),
               _buildDetailRow('Distancia desde ti', '${widget.routeSuggestion.departureStation.distanceFromUser?.toStringAsFixed(0) ?? "N/A"} m'),
               _buildDetailRow('Tiempo caminando', '${widget.routeSuggestion.departureStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} min'),
@@ -637,7 +637,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           _buildDetailCard(
             title: 'Estación de Llegada',
             children: [
-              _buildDetailRow('Nombre', widget.routeSuggestion.arrivalStation.name),
+              _buildDetailRow('Nombre', widget.routeSuggestion.arrivalStation.displayName),
               _buildDetailRow('Orden', '${widget.routeSuggestion.arrivalStation.order}'),
               _buildDetailRow('Distancia al destino', '${widget.routeSuggestion.arrivalStation.distanceToDestination?.toStringAsFixed(0) ?? "N/A"} m'),
               _buildDetailRow('Tiempo caminando', '${widget.routeSuggestion.arrivalStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} min'),
@@ -653,7 +653,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               children: widget.routeSuggestion.intermediateStations.map((station) {
                 return _buildDetailRow(
                   'Estación ${station.order}',
-                  station.name,
+                  station.displayName,
                 );
               }).toList(),
             ),
