@@ -81,7 +81,7 @@ class PlacesService {
         'key': apiKey,
         'language': 'es',
         'components': 'country:mx',
-        'types': 'geocode',
+        'types': 'address|street_address|route|sublocality|premise', // Priorizar direcciones y calles
         'location': '$_slpCenterLat,$_slpCenterLng',
         'radius': _slpRadius.toString(),
         'strictbounds': 'true',
@@ -130,14 +130,23 @@ class PlacesService {
           
           print('🌍 Filtered results count: ${results.length}');
           
-          // Ordenar por relevancia (establecimientos primero, luego direcciones)
+          // Ordenar por relevancia (direcciones primero, luego establecimientos)
           results.sort((a, b) {
             final aTypes = a.types ?? [];
             final bTypes = b.types ?? [];
             
-            // Priorizar establecimientos sobre direcciones
-            if (aTypes.contains('establishment') && !bTypes.contains('establishment')) return -1;
-            if (!aTypes.contains('establishment') && bTypes.contains('establishment')) return 1;
+            // Priorizar direcciones y calles sobre establecimientos
+            final aIsAddress = aTypes.contains('address') || 
+                              aTypes.contains('street_address') || 
+                              aTypes.contains('route') ||
+                              aTypes.contains('premise');
+            final bIsAddress = bTypes.contains('address') || 
+                              bTypes.contains('street_address') || 
+                              bTypes.contains('route') ||
+                              bTypes.contains('premise');
+            
+            if (aIsAddress && !bIsAddress) return -1;
+            if (!aIsAddress && bIsAddress) return 1;
             
             return 0;
           });
@@ -305,6 +314,91 @@ class PlacesService {
       }
     } catch (e) {
       print('❌ Error buscando establecimientos: $e');
+      return [];
+    }
+  }
+
+  // Buscar direcciones específicas con números de casa
+  static Future<List<PlacePrediction>> searchAddresses(String input) async {
+    print('🏠 PlacesService.searchAddresses called with input: "$input"');
+    
+    if (input.isEmpty) return [];
+    
+    try {
+      // Agregar "San Luis Potosí" al input para limitar las búsquedas a SLP
+      String searchInput = input;
+      if (!input.toLowerCase().contains('san luis potosí') && 
+          !input.toLowerCase().contains('slp') &&
+          !input.toLowerCase().contains('potosí')) {
+        searchInput = '$input, San Luis Potosí, SLP';
+      }
+      
+      final queryParams = {
+        'input': searchInput,
+        'key': apiKey,
+        'language': 'es',
+        'components': 'country:mx',
+        'types': 'street_address|premise|subpremise', // Solo direcciones específicas
+        'location': '$_slpCenterLat,$_slpCenterLng',
+        'radius': _slpRadius.toString(),
+        'strictbounds': 'true',
+      };
+
+      final uri = Uri.https(
+        'maps.googleapis.com',
+        '/maps/api/place/autocomplete/json',
+        queryParams,
+      );
+
+      print('🏠 Making address request to: ${uri.toString()}');
+
+      final response = await http.get(uri).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          print('🏠 Request timeout');
+          throw Exception('Tiempo de espera agotado al buscar direcciones');
+        },
+      );
+
+      print('🏠 Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('🏠 API Status: ${data['status']}');
+        
+        if (data['status'] == 'OK') {
+          final predictions = data['predictions'] as List;
+          print('🏠 Addresses found: ${predictions.length}');
+          
+          final results = predictions
+              .map((p) => PlacePrediction.fromJson(p))
+              .where((prediction) {
+                final description = prediction.description.toLowerCase();
+                final isSLP = description.contains('san luis potosí') || 
+                       description.contains('slp') ||
+                       description.contains('potosí') ||
+                       description.contains('san luis');
+                
+                print('🏠 Checking address: "${prediction.description}" - isSLP: $isSLP');
+                return isSLP;
+              })
+              .toList();
+          
+          print('🏠 Filtered addresses: ${results.length}');
+          return results;
+        } else if (data['status'] == 'ZERO_RESULTS') {
+          print('🏠 No addresses found');
+          return [];
+        } else {
+          print('❌ Error en Addresses API: ${data['status']} - ${data['error_message'] ?? 'Sin mensaje'}');
+          return [];
+        }
+      } else {
+        print('❌ Error HTTP: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('❌ Error buscando direcciones: $e');
       return [];
     }
   }

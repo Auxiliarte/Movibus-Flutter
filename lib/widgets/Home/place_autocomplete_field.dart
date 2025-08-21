@@ -72,16 +72,33 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
     try {
       print('🔍 Calling PlacesService.searchPlaces with: "$value"');
       
-      // Buscar tanto lugares geográficos como establecimientos
-      final geocodeResults = await PlacesService.searchPlaces(value);
-      final establishmentResults = await PlacesService.searchEstablishments(value);
+      // Detectar si el usuario está escribiendo una dirección con número de casa
+      final hasNumber = RegExp(r'\d').hasMatch(value);
+      final hasStreetKeywords = RegExp(r'calle|avenida|av\.|blvd\.|boulevard|carretera|ruta', caseSensitive: false).hasMatch(value);
       
-      // Combinar y ordenar resultados
+      List<PlacePrediction> addressResults = [];
+      List<PlacePrediction> establishmentResults = [];
+      
+      if (hasNumber || hasStreetKeywords) {
+        // Si tiene número o palabras de calle, buscar direcciones específicas
+        print('🔍 Detected address with number or street keywords, searching specific addresses');
+        addressResults = await PlacesService.searchAddresses(value);
+      } else {
+        // Buscar principalmente direcciones y calles
+        addressResults = await PlacesService.searchPlaces(value);
+      }
+      
+      // Solo buscar establecimientos si no hay suficientes resultados de direcciones
+      if (addressResults.length < 3) {
+        establishmentResults = await PlacesService.searchEstablishments(value);
+      }
+      
+      // Combinar resultados priorizando direcciones
       final allResults = <PlacePrediction>[];
-      allResults.addAll(establishmentResults); // Establecimientos primero
-      allResults.addAll(geocodeResults); // Lugares geográficos después
+      allResults.addAll(addressResults); // Direcciones primero
+      allResults.addAll(establishmentResults); // Establecimientos después
       
-      print('🔍 Geocode results: ${geocodeResults.length}');
+      print('🔍 Address results: ${addressResults.length}');
       print('🔍 Establishment results: ${establishmentResults.length}');
       print('🔍 Total results: ${allResults.length}');
       
@@ -358,14 +375,18 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
         return Icons.route;
       case 'street_address':
         return Icons.location_on;
+      case 'address':
+        return Icons.home;
       case 'sublocality':
         return Icons.location_city;
       case 'premise':
         return Icons.home;
       case 'point_of_interest':
         return Icons.place;
+      case 'geocode':
+        return Icons.location_on;
       default:
-        return Icons.place;
+        return Icons.location_on;
     }
   }
 

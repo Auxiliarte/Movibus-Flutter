@@ -41,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _currentLocationAddress;
   bool _isLoadingLocation = false;
   bool _showHelp = true; // Mostrar ayuda la primera vez
-  bool _isSearchingRoutes = false; // Estado para el botón de buscar rutas
+
 
   @override
   void initState() {
@@ -152,6 +152,15 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _showHelpModal() {
+    showDialog(
+      context: context,
+      builder: (context) => const HelpModal(isVisible: true),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -243,113 +252,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     isOrigin: false,
                     onPlaceSelected: _onDestinationSelected,
                   ),
-                  
-                  // Botón de encontrar mejor ruta cuando hay origen y destino
-                  if (_isVisibleTrayectos) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _isSearchingRoutes ? null : () async {
-                          setState(() {
-                            _isSearchingRoutes = true;
-                          });
-                          try {
-                            // Verificar que tenemos coordenadas válidas
-                            if (_fromLatitude == null || _fromLongitude == null) {
-                              throw Exception('Ubicación de origen no disponible');
-                            }
-                            if (_toLatitude == null || _toLongitude == null) {
-                              throw Exception('Ubicación de destino no disponible');
-                            }
-                            // Mostrar modal para confirmar/modificar destino
-                            final result = await showModalBottomSheet<Map<String, dynamic>>(
-                              context: context,
-                              isScrollControlled: true,
-                              backgroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                              ),
-                              builder: (context) => Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                                ),
-                                child: DestinationPickerModal(
-                                  origin: LatLng(_fromLatitude!, _fromLongitude!),
-                                  destination: LatLng(_toLatitude!, _toLongitude!),
-                                  originAddress: _fromController.text,
-                                  destinationAddress: _toController.text,
-                                ),
-                              ),
-                            );
-                            if (result != null) {
-                              setState(() {
-                                _toLatitude = result['latitude'] as double;
-                                _toLongitude = result['longitude'] as double;
-                                _toController.text = result['address'] as String;
-                              });
-                            } else {
-                              // El usuario canceló el modal, no continuar
-                              setState(() {
-                                _isSearchingRoutes = false;
-                              });
-                              return;
-                            }
-                            // Simular búsqueda de rutas
-                            await Future.delayed(const Duration(seconds: 2));
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('¡Rutas encontradas! Revisa las opciones disponibles.'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Error al buscar rutas: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          } finally {
-                            setState(() {
-                              _isSearchingRoutes = false;
-                            });
-                          }
-                        },
-                        icon: _isSearchingRoutes 
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.search, color: Colors.white),
-                        label: Text(
-                          _isSearchingRoutes ? 'Buscando...' : 'Encontrar Mejor Ruta',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 3,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),

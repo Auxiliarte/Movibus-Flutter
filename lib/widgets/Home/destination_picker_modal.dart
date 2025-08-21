@@ -31,30 +31,43 @@ class _DestinationPickerModalState extends State<DestinationPickerModal> {
     super.initState();
     _destination = widget.destination;
     _destinationAddress = widget.destinationAddress;
-    _getAddressFromLocation(_destination);
+    // Cargar la dirección de forma asíncrona para no bloquear la UI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getAddressFromLocation(_destination);
+    });
   }
 
   Future<void> _getAddressFromLocation(LatLng location) async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
     });
+    
     try {
       final address = await LocationService.getAddressFromCoordinates(
         location.latitude,
         location.longitude,
-      );
-      setState(() {
-        _destinationAddress = address ??
-            '${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}';
-      });
+      ).timeout(const Duration(seconds: 5)); // Timeout de 5 segundos
+      
+      if (mounted) {
+        setState(() {
+          _destinationAddress = address ??
+              '${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}';
+        });
+      }
     } catch (e) {
-      setState(() {
-        _destinationAddress = 'Ubicación seleccionada';
-      });
+      if (mounted) {
+        setState(() {
+          _destinationAddress = 'Ubicación seleccionada';
+        });
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -98,37 +111,21 @@ class _DestinationPickerModalState extends State<DestinationPickerModal> {
                     zoom: 15,
                   ),
                   onTap: _onMapTap,
-                  markers: {
-                    Marker(
-                      markerId: const MarkerId('origin'),
-                      position: widget.origin,
-                      infoWindow: InfoWindow(
-                        title: 'Origen',
-                        snippet: widget.originAddress ?? 'Origen',
-                      ),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-                    ),
-                    Marker(
-                      markerId: const MarkerId('destination'),
-                      position: _destination,
-                      draggable: true,
-                      onDragEnd: (pos) {
-                        setState(() {
-                          _destination = pos;
-                        });
-                        _getAddressFromLocation(pos);
-                      },
-                      infoWindow: InfoWindow(
-                        title: 'Destino',
-                        snippet: _destinationAddress ?? 'Destino',
-                      ),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-                    ),
-                  },
-                  myLocationEnabled: true,
+                  myLocationEnabled: false,
                   myLocationButtonEnabled: false,
                   zoomControlsEnabled: false,
                   mapToolbarEnabled: false,
+                  compassEnabled: false,
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId('destination'),
+                      position: _destination,
+                      infoWindow: InfoWindow(
+                        title: 'Destino',
+                        snippet: _destinationAddress ?? 'Ubicación seleccionada',
+                      ),
+                    ),
+                  },
                 ),
                 if (_isLoading)
                   Container(

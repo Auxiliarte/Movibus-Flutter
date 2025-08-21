@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../services/location_api_service.dart';
 import '../../services/location_service.dart';
 import '../../models/route_suggestion_model.dart';
@@ -48,8 +49,20 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
 
     try {
       print('🎯 Getting current location...');
-      // Obtener ubicación actual
-      final position = await LocationService.getCurrentLocation();
+      
+      // Obtener ubicación actual con timeout
+      Position? position;
+      try {
+        position = await LocationService.getCurrentLocation()
+            .timeout(const Duration(seconds: 10));
+      } catch (e) {
+        print('❌ Timeout getting location: $e');
+        setState(() {
+          error = 'Tiempo de espera agotado al obtener ubicación. Verifica tu conexión GPS.';
+          isLoading = false;
+        });
+        return;
+      }
       
       if (position != null) {
         print('🎯 Current position: (${position.latitude}, ${position.longitude})');
@@ -66,30 +79,48 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
           return;
         }
         
-        // Buscar sugerencias de rutas
+        // Buscar sugerencias de rutas con timeout
         print('🎯 Calling LocationApiService.suggestRoute...');
-        final result = await LocationApiService.suggestRoute(
-          userLatitude: position.latitude,
-          userLongitude: position.longitude,
-          destinationLatitude: widget.destinationLatitude!,
-          destinationLongitude: widget.destinationLongitude!,
-          maxWalkingDistance: 1500, // 1.5 km máximo caminando
-        );
+        Map<String, dynamic> result;
+        try {
+          result = await LocationApiService.suggestRoute(
+            userLatitude: position.latitude,
+            userLongitude: position.longitude,
+            destinationLatitude: widget.destinationLatitude!,
+            destinationLongitude: widget.destinationLongitude!,
+            maxWalkingDistance: 1500, // 1.5 km máximo caminando
+          ).timeout(const Duration(seconds: 15));
+        } catch (e) {
+          print('❌ Timeout or error in API call: $e');
+          setState(() {
+            error = 'Tiempo de espera agotado al buscar rutas. Verifica tu conexión a internet.';
+            isLoading = false;
+          });
+          return;
+        }
 
         print('🎯 API result: $result');
 
         if (result['status'] == 'success') {
           print('🎯 Success! Processing suggestions...');
-          final suggestions = (result['data']['all_suggestions'] as List)
-              .map((suggestion) => RouteSuggestionModel.fromJson(suggestion))
-              .toList();
+          try {
+            final suggestions = (result['data']['all_suggestions'] as List)
+                .map((suggestion) => RouteSuggestionModel.fromJson(suggestion))
+                .toList();
 
-          print('🎯 Processed ${suggestions.length} suggestions');
+            print('🎯 Processed ${suggestions.length} suggestions');
 
-          setState(() {
-            routeSuggestions = suggestions;
-            isLoading = false;
-          });
+            setState(() {
+              routeSuggestions = suggestions;
+              isLoading = false;
+            });
+          } catch (e) {
+            print('❌ Error processing suggestions: $e');
+            setState(() {
+              error = 'Error al procesar las sugerencias de rutas';
+              isLoading = false;
+            });
+          }
         } else if (result['status'] == 'error' && result['message']?.contains('No se encontraron rutas') == true) {
           // This is a valid response indicating no routes were found
           print('🎯 No routes found - this is expected behavior');
@@ -114,7 +145,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
     } catch (e) {
       print('❌ Exception in findRouteSuggestions: $e');
       setState(() {
-        error = e.toString();
+        error = 'Error inesperado: ${e.toString()}';
         isLoading = false;
       });
     }
@@ -226,26 +257,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                 ),
               )
             else if (error != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.error_outline, color: Colors.red.shade600),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Error: $error',
-                        style: TextStyle(color: Colors.red.shade700),
-                      ),
-                    ),
-                  ],
-                ),
-              )
+              _buildErrorWidget()
             else if (routeSuggestions != null && routeSuggestions!.isNotEmpty)
               _buildSuggestionsList()
             else if (routeSuggestions != null && routeSuggestions!.isEmpty)
@@ -482,6 +494,63 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red.shade600),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Error al buscar rutas',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            error!,
+            style: TextStyle(
+              color: Colors.red.shade600,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: findRouteSuggestions,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade600,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Reintentar'),
                 ),
               ),
             ],

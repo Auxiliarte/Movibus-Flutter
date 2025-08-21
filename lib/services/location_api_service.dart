@@ -3,19 +3,7 @@ import 'package:http/http.dart' as http;
 
 class LocationApiService {
   static const String baseUrl = 'https://app.moventra.com.mx/api';
-  
-  // Verificar si el endpoint existe
-  static Future<bool> checkEndpoint(String endpoint) async {
-    try {
-      print('🔍 Checking endpoint: $baseUrl$endpoint');
-      final response = await http.get(Uri.parse('$baseUrl$endpoint'));
-      print('🔍 Endpoint status: ${response.statusCode}');
-      return response.statusCode != 404;
-    } catch (e) {
-      print('🔍 Endpoint check failed: $e');
-      return false;
-    }
-  }
+  static const Duration timeout = Duration(seconds: 15);
   
   // Encontrar estación más cercana
   static Future<Map<String, dynamic>> findNearestStation({
@@ -32,14 +20,17 @@ class LocationApiService {
           'longitude': longitude,
           if (routeId != null) 'route_id': routeId,
         }),
-      );
+      ).timeout(timeout);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error del servidor: ${response.statusCode}');
       }
     } catch (e) {
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tiempo de espera agotado. Verifica tu conexión a internet.');
+      }
       throw Exception('Error de conexión: $e');
     }
   }
@@ -70,20 +61,12 @@ class LocationApiService {
     
     print('🚌 Request body: ${jsonEncode(requestBody)}');
     
-    // Verificar si el endpoint existe
-    print('🔍 Checking if endpoint exists...');
-    final endpointExists = await checkEndpoint('/location/suggest-route');
-    if (!endpointExists) {
-      print('❌ Endpoint /location/suggest-route does not exist (404)');
-      throw Exception('Endpoint no disponible: /location/suggest-route');
-    }
-    
     try {
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
-      );
+      ).timeout(timeout);
 
       print('🚌 Response status: ${response.statusCode}');
       print('🚌 Response body: ${response.body}');
@@ -96,10 +79,13 @@ class LocationApiService {
       } else {
         print('❌ HTTP Error: ${response.statusCode}');
         print('❌ Error response: ${response.body}');
-        throw Exception('Error: ${response.statusCode} - ${response.body}');
+        throw Exception('Error del servidor: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ Exception in suggestRoute: $e');
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tiempo de espera agotado. Verifica tu conexión a internet.');
+      }
       throw Exception('Error de conexión: $e');
     }
   }
@@ -109,14 +95,17 @@ class LocationApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/location/routes'),
-      );
+      ).timeout(timeout);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error del servidor: ${response.statusCode}');
       }
     } catch (e) {
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tiempo de espera agotado. Verifica tu conexión a internet.');
+      }
       throw Exception('Error de conexión: $e');
     }
   }
@@ -126,14 +115,17 @@ class LocationApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/location/route/$routeId/stations'),
-      );
+      ).timeout(timeout);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error del servidor: ${response.statusCode}');
       }
     } catch (e) {
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tiempo de espera agotado. Verifica tu conexión a internet.');
+      }
       throw Exception('Error de conexión: $e');
     }
   }
@@ -143,14 +135,17 @@ class LocationApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/location/route/$routeId/tracking'),
-      );
+      ).timeout(timeout);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error: ${response.statusCode}');
+        throw Exception('Error del servidor: ${response.statusCode}');
       }
     } catch (e) {
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tiempo de espera agotado. Verifica tu conexión a internet.');
+      }
       throw Exception('Error de conexión: $e');
     }
   }
