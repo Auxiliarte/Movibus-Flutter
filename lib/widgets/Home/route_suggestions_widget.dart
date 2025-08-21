@@ -154,12 +154,12 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   @override
   void initState() {
     super.initState();
-    // Auto-buscar sugerencias si tenemos destino
-    if (widget.destinationLatitude != null && widget.destinationLongitude != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        findRouteSuggestions();
-      });
-    }
+    // No buscar automáticamente, esperar a que se confirme el destino
+    // if (widget.destinationLatitude != null && widget.destinationLongitude != null) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     findRouteSuggestions();
+    //   });
+    // }
   }
 
   @override
@@ -207,8 +207,8 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                             color: Colors.white,
                           ),
                         )
-                      : const Icon(Icons.refresh, size: 16),
-                    label: Text(isLoading ? 'Buscando...' : 'Actualizar'),
+                      : const Icon(Icons.search, size: 16),
+                    label: Text(isLoading ? 'Buscando...' : 'Buscar Rutas'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: Colors.white,
@@ -304,17 +304,31 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                   color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: theme.colorScheme.primary,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Destino confirmado',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Especifica un destino para ver rutas sugeridas',
-                        style: theme.textTheme.bodyMedium,
+                    const SizedBox(height: 8),
+                    Text(
+                      'Presiona "Buscar Rutas" para encontrar las mejores opciones de transporte público.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

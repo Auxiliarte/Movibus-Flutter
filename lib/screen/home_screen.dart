@@ -14,8 +14,9 @@ import '../services/coupon_service.dart';
 import '../services/location_service.dart';
 import 'package:moventra/widgets/Home/place_autocomplete_field.dart';
 import 'package:moventra/widgets/Home/help_modal.dart';
-import 'package:moventra/widgets/Home/destination_picker_modal.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'destination_confirmation_screen.dart';
+import 'google_maps_test_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -143,13 +144,91 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _onDestinationSelected(String name, double lat, double lng) {
+  void _onDestinationSelected(String name, double lat, double lng) async {
+    print('🎯 Destination selected: $name at ($lat, $lng)');
+    
+    // Ocultar teclado antes de continuar
+    FocusScope.of(context).unfocus();
+    
+    // Pequeño delay para asegurar que el teclado se oculte completamente
+    await Future.delayed(const Duration(milliseconds: 150));
+    
     setState(() {
       _toLatitude = lat;
       _toLongitude = lng;
-      _showHelp = false; // Ocultar ayuda cuando el usuario selecciona destino
-      _checkInputs();
+      _toController.text = name;
+      _isVisibleTrayectos = true;
     });
+
+    // Verificar que el widget aún está montado antes de navegar
+    if (!mounted) return;
+
+    print('🎯 About to navigate to confirmation screen...');
+    
+    try {
+      // Navegar a la pantalla de confirmación del destino
+      final result = await Navigator.of(context).push<Map<String, dynamic>>(
+        MaterialPageRoute(
+          builder: (context) => DestinationConfirmationScreen(
+            originLat: _fromLatitude ?? 22.1565,
+            originLng: _fromLongitude ?? -100.9855,
+            destinationLat: lat,
+            destinationLng: lng,
+            originAddress: _fromController.text.isNotEmpty ? _fromController.text : null,
+            destinationAddress: name,
+          ),
+        ),
+      );
+      
+      print('🎯 Navigation completed, result: $result');
+
+      if (result != null) {
+        // El usuario confirmó el destino
+        setState(() {
+          _toLatitude = result['latitude'] as double;
+          _toLongitude = result['longitude'] as double;
+          _toController.text = result['address'] as String;
+        });
+        
+        // Mostrar mensaje de confirmación
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Destino confirmado: ${result['address']}'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // El usuario canceló, revertir cambios
+        setState(() {
+          _toLatitude = null;
+          _toLongitude = null;
+          _toController.clear();
+          _isVisibleTrayectos = false;
+        });
+      }
+    } catch (e) {
+      print('❌ Error during navigation: $e');
+      // En caso de error, simplemente confirmar el destino sin navegar
+      setState(() {
+        _toLatitude = lat;
+        _toLongitude = lng;
+        _toController.text = name;
+        _isVisibleTrayectos = true;
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Destino seleccionado: $name'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
   }
 
   void _showHelpModal() {
@@ -224,6 +303,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                   size: 24,
                                 ),
                             tooltip: 'Actualizar ubicación actual',
+                          ),
+                          IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const GoogleMapsTestScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.map,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            tooltip: 'Probar Google Maps',
                           ),
                           const CircleAvatar(
                             radius: 25,

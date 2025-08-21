@@ -122,6 +122,15 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
     print('🎯 Selected prediction: ${prediction.description}');
     print('🎯 Place ID: ${prediction.placeId}');
     
+    // Ocultar teclado inmediatamente
+    _focusNode.unfocus();
+    
+    // Limpiar sugerencias inmediatamente
+    setState(() {
+      _suggestions = [];
+      _showMapOption = false;
+    });
+    
     try {
       print('🎯 Getting place details...');
       final details = await PlacesService.getPlaceDetails(prediction.placeId);
@@ -133,33 +142,40 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
         
         final displayName = details.name.isNotEmpty ? details.name : prediction.description;
         _controller.text = displayName;
-        widget.onPlaceSelected(displayName, details.latitude!, details.longitude!);
         
-        setState(() {
-          _suggestions = [];
-          _showMapOption = false;
-        });
-        _focusNode.unfocus();
+        // Pequeño delay para asegurar que el teclado se oculte completamente
+        await Future.delayed(const Duration(milliseconds: 100));
         
-        print('🎯 Selection completed successfully');
+        // Verificar que el widget aún está montado antes de continuar
+        if (mounted) {
+          widget.onPlaceSelected(displayName, details.latitude!, details.longitude!);
+          print('🎯 Selection completed successfully');
+        }
       } else {
         print('❌ Place details are null or missing coordinates');
       }
     } catch (e) {
       print('❌ Error in _onSuggestionTap: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al obtener detalles del lugar: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al obtener detalles del lugar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   Future<void> _useCurrentLocation() async {
     try {
+      // Ocultar teclado inmediatamente
+      _focusNode.unfocus();
+      
       setState(() {
         _isLoading = true;
+        _suggestions = [];
+        _showMapOption = false;
       });
 
       final position = await LocationService.getCurrentLocation();
@@ -171,29 +187,42 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
         
         final displayName = address ?? 'Mi ubicación actual';
         _controller.text = displayName;
-        widget.onPlaceSelected(displayName, position.latitude, position.longitude);
         
-        setState(() {
-          _suggestions = [];
-          _showMapOption = false;
-        });
-        _focusNode.unfocus();
+        // Pequeño delay para asegurar que el teclado se oculte completamente
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Verificar que el widget aún está montado antes de continuar
+        if (mounted) {
+          widget.onPlaceSelected(displayName, position.latitude, position.longitude);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al obtener ubicación actual: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al obtener ubicación actual: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   void _selectFromMap() async {
+    // Ocultar teclado inmediatamente
+    _focusNode.unfocus();
+    
+    setState(() {
+      _suggestions = [];
+      _showMapOption = false;
+    });
+    
     final result = await Navigator.pushNamed(
       context,
       '/locationPicker',
@@ -209,13 +238,11 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
       final address = result['address'] as String;
 
       _controller.text = address;
-      widget.onPlaceSelected(address, latitude, longitude);
       
-      setState(() {
-        _suggestions = [];
-        _showMapOption = false;
-      });
-      _focusNode.unfocus();
+      // Verificar que el widget aún está montado antes de continuar
+      if (mounted) {
+        widget.onPlaceSelected(address, latitude, longitude);
+      }
     }
   }
 
