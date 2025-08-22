@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _favoritesError;
 
   // Estado para el perfil del usuario
-  String? _userToken;
+  String? _userToken; // ignore: unused_field - Usado internamente para autenticación en la API
   UserProfile? _userProfile;
   bool _isLoadingProfile = false;
   String? _profileError;
@@ -586,32 +586,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildUserAvatar() {
+    Widget avatar;
+
     if (_isLoadingProfile) {
-      return const CircleAvatar(
+      avatar = const CircleAvatar(
         radius: 25,
         child: CircularProgressIndicator(
           strokeWidth: 2,
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
         ),
       );
-    }
-
-    if (_profileError != null || _userProfile == null || _userProfile!.profilePhotoUrl == null) {
-      return const CircleAvatar(
+    } else if (_profileError != null || _userProfile == null || _userProfile!.profilePhotoUrl == null) {
+      avatar = const CircleAvatar(
         radius: 25,
         backgroundImage: AssetImage('assets/Avatars.png'),
         backgroundColor: Colors.transparent,
       );
+    } else {
+      avatar = CircleAvatar(
+        radius: 25,
+        backgroundImage: NetworkImage(_userProfile!.profilePhotoUrl!),
+        backgroundColor: Colors.transparent,
+        onBackgroundImageError: (exception, stackTrace) {
+          print('Error cargando imagen de perfil en home: $exception');
+        },
+        child: Container(), // Container vacío para evitar icono sobre imagen
+      );
     }
 
-    return CircleAvatar(
-      radius: 25,
-      backgroundImage: NetworkImage(_userProfile!.profilePhotoUrl!),
-      backgroundColor: Colors.transparent,
-      onBackgroundImageError: (exception, stackTrace) {
-        print('Error cargando imagen de perfil en home: $exception');
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/profile');
       },
-      child: Container(), // Container vacío para evitar icono sobre imagen
+      child: avatar,
     );
   }
 
