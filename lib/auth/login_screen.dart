@@ -1,12 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-//import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
-//import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'register_screen.dart';
-import 'dart:io' show Platform;
 import '../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -224,106 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 100),
-                  Row(
-                    children: const [
-                      Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: Colors.grey,
-                          endIndent: 10,
-                        ),
-                      ),
-                      Text(
-                        "o continua con",
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          thickness: 1,
-                          color: Colors.grey,
-                          indent: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Redes sociales
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Apple
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.black,
-                        ),
-                        child: IconButton(
-                          icon: const FaIcon(
-                            FontAwesomeIcons.apple,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-
-                      // Facebook
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF1877F2),
-                        ),
-                        child: IconButton(
-                          icon: Image.asset(
-                            'assets/Icon/icons-facebook.png',
-                            color: Colors.white,
-                            width: 24,
-                            height: 24,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-
-                      // Google
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFE0E0E0),
-                        ),
-                        child: IconButton(
-                          icon: Image.asset(
-                            'assets/Icon/icons-google.png',
-                            width: 24,
-                            height: 24,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-
-                      // Twitter
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF1DA1F2),
-                        ),
-                        child: IconButton(
-                          icon: const FaIcon(
-                            FontAwesomeIcons.twitter,
-                            color: Colors.white,
-                          ),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 50),
 
                   // Sesión
                   Row(
@@ -359,3 +256,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+
+

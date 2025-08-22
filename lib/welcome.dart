@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:moventra/themes/app_colors.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -253,104 +252,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       ),
 
                       const SizedBox(height: 32),
-
-                      Row(
-                        children: const [
-                          Expanded(
-                            child: Divider(
-                              thickness: 1,
-                              color: Colors.grey,
-                              endIndent: 10,
-                            ),
-                          ),
-                          Text(
-                            "o continua con",
-                            style: TextStyle(fontSize: 16, color: Colors.grey),
-                          ),
-                          Expanded(
-                            child: Divider(
-                              thickness: 1,
-                              color: Colors.grey,
-                              indent: 10,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 32),
-
-                      // Redes sociales
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Apple
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.black,
-                            ),
-                            child: IconButton(
-                              icon: const FaIcon(
-                                FontAwesomeIcons.apple,
-                                color: Colors.white,
-                              ),
-                              onPressed: () {},
-                            ),
-                          ),
-
-                          // Facebook
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFF1877F2),
-                            ),
-                            child: IconButton(
-                              icon: Image.asset(
-                                'assets/Icon/icons-facebook.png',
-                                color: Colors.white,
-                                width: 24,
-                                height: 24,
-                              ),
-                              onPressed: () {},
-                            ),
-                          ),
-
-                          // Google
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFE0E0E0),
-                            ),
-                            child: IconButton(
-                              icon: Image.asset(
-                                'assets/Icon/icons-google.png',
-                                width: 24,
-                                height: 24,
-                              ),
-                              onPressed: () {},
-                            ),
-                          ),
-
-                          // X (Twitter)
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFF1DA1F2),
-                            ),
-                            child: IconButton(
-                              icon: FaIcon(
-                                FontAwesomeIcons.twitter,
-                                color: Colors.white,
-                              ),
-                              onPressed: () {},
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
