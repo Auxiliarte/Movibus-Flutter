@@ -53,16 +53,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   void _initializeMap() {
     
     _markers = {
-      // Marcador de ubicación del usuario
-      Marker(
-        markerId: const MarkerId('user_location'),
-        position: LatLng(widget.userLatitude, widget.userLongitude),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-        infoWindow: const InfoWindow(
-          title: 'Tu ubicación',
-          snippet: 'Punto de partida',
-        ),
-      ),
       // Marcador de estación de partida
       Marker(
         markerId: const MarkerId('departure_station'),
@@ -72,8 +62,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: InfoWindow(
-          title: widget.routeSuggestion.departureStation.displayName,
-          snippet: 'Estación de partida',
+          title: 'Inicio',
+          snippet: widget.routeSuggestion.departureStation.displayName,
         ),
       ),
       // Marcador de estación de llegada
@@ -85,42 +75,14 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         infoWindow: InfoWindow(
-          title: widget.routeSuggestion.arrivalStation.displayName,
-          snippet: 'Estación de llegada',
-        ),
-      ),
-      // Marcador del destino final
-      Marker(
-        markerId: const MarkerId('destination'),
-        position: LatLng(
-          widget.destinationLatitude,
-          widget.destinationLongitude,
-        ),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        infoWindow: InfoWindow(
-          title: 'Destino',
-          snippet: widget.destinationAddress,
+          title: 'Fin',
+          snippet: widget.routeSuggestion.arrivalStation.displayName,
         ),
       ),
     };
 
-    // Agregar marcadores de estaciones intermedias (solo si tienen coordenadas válidas)
-    for (int i = 0; i < widget.routeSuggestion.intermediateStations.length; i++) {
-      final station = widget.routeSuggestion.intermediateStations[i];
-      if (station.latitude != 0.0 && station.longitude != 0.0) {
-        _markers.add(
-          Marker(
-            markerId: MarkerId('intermediate_${station.id}'),
-            position: LatLng(station.latitude, station.longitude),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-            infoWindow: InfoWindow(
-                                      title: station.displayName,
-              snippet: 'Estación intermedia',
-            ),
-          ),
-        );
-      }
-    }
+    // Solo mostrar marcadores esenciales para el trayecto del autobús
+    // Eliminadas las estaciones intermedias para una vista más limpia
 
     // --- POLILÍNEAS ---
     _polylines = {};
