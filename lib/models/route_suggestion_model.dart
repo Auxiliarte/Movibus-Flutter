@@ -8,6 +8,8 @@ class RouteSuggestionModel {
   final String tiempoEnCamion;
   final String tiempoTotal;
   final double puntuacion;
+  final TrayectoInfo? trayecto;
+  final TransbordoInfo? transbordo;
 
   RouteSuggestionModel({
     required this.tipo,
@@ -17,6 +19,8 @@ class RouteSuggestionModel {
     required this.tiempoEnCamion,
     required this.tiempoTotal,
     required this.puntuacion,
+    this.trayecto,
+    this.transbordo,
   });
 
   factory RouteSuggestionModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +32,8 @@ class RouteSuggestionModel {
       tiempoEnCamion: json['tiempo_en_camion'] ?? '0 minutos',
       tiempoTotal: json['tiempo_total'] ?? '0 minutos',
       puntuacion: (json['puntuacion'] ?? 0.0).toDouble(),
+      trayecto: json['trayecto'] != null ? TrayectoInfo.fromJson(json['trayecto']) : null,
+      transbordo: json['transbordo'] != null ? TransbordoInfo.fromJson(json['transbordo']) : null,
     );
   }
 
@@ -40,6 +46,8 @@ class RouteSuggestionModel {
       'tiempo_en_camion': tiempoEnCamion,
       'tiempo_total': tiempoTotal,
       'puntuacion': puntuacion,
+      if (trayecto != null) 'trayecto': trayecto!.toJson(),
+      if (transbordo != null) 'transbordo': transbordo!.toJson(),
     };
   }
 
@@ -64,9 +72,17 @@ class RouteSuggestionModel {
     distanceMeters: _extractDistance(bajarseEn.distanciaCaminando),
     walkingTimeMinutes: _extractTime(bajarseEn.tiempoCaminando),
   );
-  String get direction => 'Dirección desconocida';
-  int get stationsCount => 0;
-  List<StationModel> get intermediateStations => [];
+  String get direction => trayecto?.direccion ?? 'Dirección desconocida';
+  int get stationsCount => trayecto?.totalEstaciones ?? 0;
+  List<StationModel> get intermediateStations {
+    if (trayecto == null) return [];
+    return trayecto!.estaciones.map((estacion) => StationModel(
+      id: estacion.orden,
+      latitude: estacion.latitud,
+      longitude: estacion.longitud,
+      order: estacion.orden,
+    )).toList();
+  }
   double get estimatedBusTimeMinutes {
     // Extraer minutos del string "36 minutos"
     final match = RegExp(r'(\d+)').firstMatch(tiempoEnCamion);
@@ -158,6 +174,126 @@ class StationInfo {
           'latitud': latitud,
           'longitud': longitud,
         },
+    };
+  }
+}
+
+class TrayectoInfo {
+  final String direccion;
+  final List<EstacionTrayecto> estaciones;
+  final int totalEstaciones;
+
+  TrayectoInfo({
+    required this.direccion,
+    required this.estaciones,
+    required this.totalEstaciones,
+  });
+
+  factory TrayectoInfo.fromJson(Map<String, dynamic> json) {
+    return TrayectoInfo(
+      direccion: json['direccion'] ?? 'ida',
+      estaciones: (json['estaciones'] as List?)
+          ?.map((estacion) => EstacionTrayecto.fromJson(estacion))
+          .toList() ?? [],
+      totalEstaciones: json['total_estaciones'] ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'direccion': direccion,
+      'estaciones': estaciones.map((e) => e.toJson()).toList(),
+      'total_estaciones': totalEstaciones,
+    };
+  }
+}
+
+class EstacionTrayecto {
+  final String estacion;
+  final int orden;
+  final double latitud;
+  final double longitud;
+
+  EstacionTrayecto({
+    required this.estacion,
+    required this.orden,
+    required this.latitud,
+    required this.longitud,
+  });
+
+  factory EstacionTrayecto.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic> coordenadas = json['coordenadas'] ?? {};
+    return EstacionTrayecto(
+      estacion: json['estacion'] ?? 'Estación desconocida',
+      orden: json['orden'] ?? 0,
+      latitud: coordenadas['latitud']?.toDouble() ?? 0.0,
+      longitud: coordenadas['longitud']?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'estacion': estacion,
+      'orden': orden,
+      'coordenadas': {
+        'latitud': latitud,
+        'longitud': longitud,
+      },
+    };
+  }
+}
+
+class TransbordoInfo {
+  final String estacionOrigen;
+  final String estacionDestino;
+  final String distanciaCaminando;
+  final String tiempoCaminando;
+  final double latitudOrigen;
+  final double longitudOrigen;
+  final double latitudDestino;
+  final double longitudDestino;
+
+  TransbordoInfo({
+    required this.estacionOrigen,
+    required this.estacionDestino,
+    required this.distanciaCaminando,
+    required this.tiempoCaminando,
+    required this.latitudOrigen,
+    required this.longitudOrigen,
+    required this.latitudDestino,
+    required this.longitudDestino,
+  });
+
+  factory TransbordoInfo.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic> coordenadasOrigen = json['coordenadas_origen'] ?? {};
+    Map<String, dynamic> coordenadasDestino = json['coordenadas_destino'] ?? {};
+    
+    return TransbordoInfo(
+      estacionOrigen: json['estacion_origen'] ?? 'Estación origen',
+      estacionDestino: json['estacion_destino'] ?? 'Estación destino',
+      distanciaCaminando: json['distancia_caminando'] ?? '0 metros',
+      tiempoCaminando: json['tiempo_caminando'] ?? '0 minutos',
+      latitudOrigen: coordenadasOrigen['latitud']?.toDouble() ?? 0.0,
+      longitudOrigen: coordenadasOrigen['longitud']?.toDouble() ?? 0.0,
+      latitudDestino: coordenadasDestino['latitud']?.toDouble() ?? 0.0,
+      longitudDestino: coordenadasDestino['longitud']?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'estacion_origen': estacionOrigen,
+      'estacion_destino': estacionDestino,
+      'distancia_caminando': distanciaCaminando,
+      'tiempo_caminando': tiempoCaminando,
+      'coordenadas_origen': {
+        'latitud': latitudOrigen,
+        'longitud': longitudOrigen,
+      },
+      'coordenadas_destino': {
+        'latitud': latitudDestino,
+        'longitud': longitudDestino,
+      },
     };
   }
 } 
