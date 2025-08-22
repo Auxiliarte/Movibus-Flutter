@@ -181,9 +181,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       return const Center(child: Text('No se pudo cargar el perfil'));
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Foto de perfil y nombre
@@ -282,6 +283,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                       onPressed: _updateProfilePhoto,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
+                        foregroundColor: Colors.white,
                       ),
                       child: const Text('Cambiar Foto'),
                     ),
@@ -310,6 +312,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
+                          foregroundColor: Colors.black,
                         ),
                         child: const Text('Eliminar Foto'),
                       ),
@@ -363,6 +366,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
             ],
           ),
         ],
+      ),
       ),
     );
   }
