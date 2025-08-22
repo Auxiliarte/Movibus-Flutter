@@ -4,6 +4,7 @@ import 'package:moventra/widgets/Auth/register/step2_content.dart';
 import 'package:moventra/widgets/Auth/register/step3_content.dart';
 import '../widgets/loading_screen.dart';
 import '../widgets/custom_text_form_field.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,6 +23,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _apellidoController = TextEditingController();
   final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _passwordConfirmationController = TextEditingController();
+  final AuthService _authService = AuthService();
+  String? _errorMessage;
 
   final stepTitles = [
     'Comencemos',
@@ -47,21 +52,68 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  void _continuar() {
+  void _continuar() async {
     if (_currentStep == 0 && !_formKey.currentState!.validate()) return;
 
     if (_currentStep < 2) {
       setState(() => _currentStep += 1);
     } else {
+      // Validar que todos los campos estén completos antes de enviar
+      if (_nombreController.text.isEmpty ||
+          _apellidoController.text.isEmpty ||
+          _correoController.text.isEmpty ||
+          _passwordController.text.isEmpty ||
+          _passwordConfirmationController.text.isEmpty) {
+        setState(() {
+          _errorMessage = 'Por favor completa todos los campos';
+        });
+        return;
+      }
+
+      if (_passwordController.text != _passwordConfirmationController.text) {
+        setState(() {
+          _errorMessage = 'Las contraseñas no coinciden';
+        });
+        return;
+      }
+
       setState(() {
         _isLoading = true;
+        _errorMessage = null;
       });
 
-      Future.delayed(const Duration(seconds: 2), () {
+      try {
+        final result = await _authService.register(
+          name: _nombreController.text,
+          lastName: _apellidoController.text,
+          email: _correoController.text,
+          password: _passwordController.text,
+          passwordConfirmation: _passwordConfirmationController.text,
+        );
+
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/Welcome');
+          // Mostrar mensaje de éxito
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Usuario registrado exitosamente'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Pequeño delay para que el usuario vea el mensaje
+          await Future.delayed(const Duration(seconds: 1));
+
+          if (mounted) {
+            // Redirigir al home con la sesión ya iniciada
+            Navigator.pushReplacementNamed(context, '/home');
+          }
         }
-      });
+      } catch (e) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -131,6 +183,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             color: const Color(0xFFA13CF2),
                           ),
                         ),
+
+                        // Mensaje de error
+                        if (_errorMessage != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red.shade200),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: TextStyle(
+                                        color: Colors.red.shade700,
+                                        fontSize: 14,
+                                        fontFamily: 'Quicksand',
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
                         // Títulos
                         Padding(
@@ -234,7 +316,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           },
         );
       case 1:
-        return const Step2Content();
+        return Step2Content(
+          passwordController: _passwordController,
+          passwordConfirmationController: _passwordConfirmationController,
+        );
       case 2:
         return Step3Content(
           aceptaNotificaciones: _aceptaNotificaciones,
