@@ -466,67 +466,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
 
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Historial",
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const Icon(
-                          Icons.delete_outline,
-                          size: 25,
-                          color: Color(0xFFA13CF2),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ListTile(
-                      onTap: () {
-                        Navigator.pushNamed(context, '/routes');
-                      },
-                      tileColor: theme.dialogTheme.backgroundColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      leading: Icon(
-                        Icons.access_time,
-                        color: theme.textTheme.bodyMedium?.color,
-                      ),
-                      title: Text(
-                        "Ruta 24",
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      subtitle: Text(
-                        "Av. Industrias 600",
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Hace 2 días",
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ],
         ),
