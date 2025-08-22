@@ -249,12 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showHelpModal() {
-    showDialog(
-      context: context,
-      builder: (context) => const HelpModal(isVisible: true),
-    );
-  }
+
 
 
 
@@ -591,50 +586,36 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      // Determinar si usar el favorito como origen o destino
-      bool useAsOrigin = _fromController.text.isEmpty ||
-                        (_fromController.text.isNotEmpty && _toController.text.isNotEmpty);
-
-      // Coordenadas del usuario (origen actual o ubicación actual)
+      // Obtener ubicación actual del usuario
+      final currentPosition = await LocationService.getCurrentLocation();
       double userLat, userLng;
-      String destinationAddress;
 
-      if (useAsOrigin) {
-        // Usar ubicación actual como origen
-        final currentPosition = await LocationService.getCurrentLocation();
-        if (currentPosition != null) {
-          userLat = currentPosition.latitude;
-          userLng = currentPosition.longitude;
-        } else {
-          // Coordenadas por defecto de San Luis Potosí
-          userLat = 22.1565;
-          userLng = -100.9855;
-        }
-
-        // El favorito será el destino
-        destinationAddress = favorite.address;
-        _toController.text = favorite.address;
-        _toLatitude = favorite.latitude;
-        _toLongitude = favorite.longitude;
-
+      if (currentPosition != null) {
+        userLat = currentPosition.latitude;
+        userLng = currentPosition.longitude;
       } else {
-        // El favorito será el origen
-        userLat = favorite.latitude;
-        userLng = favorite.longitude;
-        _fromController.text = favorite.address;
-        _fromLatitude = favorite.latitude;
-        _fromLongitude = favorite.longitude;
-
-        // Mantener el destino actual
-        destinationAddress = _toController.text;
+        // Coordenadas por defecto de San Luis Potosí si no hay GPS
+        userLat = 22.1565;
+        userLng = -100.9855;
       }
 
-      // Hacer la sugerencia de ruta
+      // El favorito será el destino
+      final destinationAddress = favorite.address;
+      _toController.text = favorite.address;
+      _toLatitude = favorite.latitude;
+      _toLongitude = favorite.longitude;
+
+      // Usar ubicación actual como origen
+      _fromController.text = "Mi ubicación actual";
+      _fromLatitude = userLat;
+      _fromLongitude = userLng;
+
+      // Hacer la sugerencia de ruta con ubicación actual → favorito
       final result = await LocationApiService.suggestRoute(
         userLatitude: userLat,
         userLongitude: userLng,
-        destinationLatitude: _toLatitude!,
-        destinationLongitude: _toLongitude!,
+        destinationLatitude: favorite.latitude,
+        destinationLongitude: favorite.longitude,
         maxWalkingDistance: 1000, // 1 km máximo caminando
       );
 
@@ -654,8 +635,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   destinationAddress: destinationAddress,
                   userLatitude: userLat,
                   userLongitude: userLng,
-                  destinationLatitude: _toLatitude!,
-                  destinationLongitude: _toLongitude!,
+                  destinationLatitude: favorite.latitude,
+                  destinationLongitude: favorite.longitude,
                 ),
               ),
             );
@@ -687,6 +668,8 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
   }
+
+
 
   void _showAddFavoriteModal() async {
     final result = await Navigator.push<FavoriteLocation>(
