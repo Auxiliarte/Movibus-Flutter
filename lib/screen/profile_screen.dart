@@ -5,6 +5,7 @@ import 'package:moventra/widgets/profile/menu_item_tile.dart';
 import 'package:moventra/widgets/profile/preferences_switches.dart';
 import 'package:moventra/widgets/profile/profile_header.dart';
 import 'package:moventra/services/auth_service.dart';
+import 'package:moventra/widgets/deactivate_account_dialog.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -66,6 +67,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showDeactivateAccountDialog() async {
+    // Obtener token de autenticación
+    final token = await _authService.getToken();
+
+    if (token != null && mounted) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return DeactivateAccountDialog(
+            token: token,
+            onAccountDeactivated: () async {
+              // Cerrar sesión después de desactivar la cuenta
+              await _authService.logout();
+              if (mounted) {
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/Welcome',
+                  (route) => false
+                );
+              }
+            },
+          );
+        },
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: No se pudo obtener la autenticación'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -95,6 +130,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: theme.colorScheme.surface,
               child: Column(
                 children: [
+                  ListTile(
+                    leading: Icon(Icons.delete_forever, color: Colors.red.shade600),
+                    title: Text(
+                      "Eliminar cuenta",
+                      style: TextStyle(color: Colors.red.shade600),
+                    ),
+                    onTap: () => _showDeactivateAccountDialog(),
+                  ),
+                  Divider(height: 1, color: Colors.grey.shade300),
                   ListTile(
                     leading: const Icon(Icons.logout, color: Colors.red),
                     title: const Text(
