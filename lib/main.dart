@@ -37,39 +37,45 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    return MaterialApp(
-      title: 'Moventra',
-      debugShowCheckedModeBanner: false,
-      theme: AppThemes.lightTheme,
-      darkTheme: AppThemes.darkTheme,
-      themeMode: themeProvider.themeMode,
-      home: const SplashScreen(),
-      routes: {
-        '/home': (_) => const HomeScreen(),
-        '/login': (_) => const LoginScreen(),
-        '/register': (_) => const RegisterScreen(),
-        '/Welcome': (_) => const WelcomeScreen(),
-        '/resetPass': (_) => const ResetPasswordScreen(),
-        '/settings': (_) => SettingsScreen(),
-        '/routes': (_) => const RoutesScreen(),
-        '/routesHistory': (_) => const RoutesScreen(),
-        '/routesBus': (_) => const BusRouteScreen(),
-        '/profile': (_) => const ProfileScreen(),
-        '/EditProfile': (_) => const ProfileEditMenu(),
-        '/EditProfilePersonal': (_) => const ProfileEditpersonal(),
-        '/EditProfilePass': (_) => const ProfileEditPass(),
-        '/EditProfileMail': (_) => const ProfileEditMail(),
-        '/couponHistory': (_) => const CouponPromoHistorialScreen(),
-        '/statistics': (_) => const StatisticsScreen(),
-        '/locationTest': (_) => const LocationTestScreen(),
-        '/locationPicker': (context) {
-          final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
-          return LocationPickerScreen(
-            title: args?['title'] ?? 'Seleccionar ubicación',
-            initialAddress: args?['initialAddress'],
-          );
-        },
+    return GestureDetector(
+      onTap: () {
+        // Cerrar el teclado cuando se toca en cualquier lugar
+        FocusScope.of(context).unfocus();
       },
+      child: MaterialApp(
+        title: 'Moventra',
+        debugShowCheckedModeBanner: false,
+        theme: AppThemes.lightTheme,
+        darkTheme: AppThemes.darkTheme,
+        themeMode: themeProvider.themeMode,
+        home: const SplashScreen(),
+        routes: {
+          '/home': (_) => const HomeScreen(),
+          '/login': (_) => const LoginScreen(),
+          '/register': (_) => const RegisterScreen(),
+          '/Welcome': (_) => const WelcomeScreen(),
+          '/resetPass': (_) => const ResetPasswordScreen(),
+          '/settings': (_) => SettingsScreen(),
+          '/routes': (_) => const RoutesScreen(),
+          '/routesHistory': (_) => const RoutesScreen(),
+          '/routesBus': (_) => const BusRouteScreen(),
+          '/profile': (_) => const ProfileScreen(),
+          '/EditProfile': (_) => const ProfileEditMenu(),
+          '/EditProfilePersonal': (_) => const ProfileEditpersonal(),
+          '/EditProfilePass': (_) => const ProfileEditPass(),
+          '/EditProfileMail': (_) => const ProfileEditMail(),
+          '/couponHistory': (_) => const CouponPromoHistorialScreen(),
+          '/statistics': (_) => const StatisticsScreen(),
+          '/locationTest': (_) => const LocationTestScreen(),
+          '/locationPicker': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;
+            return LocationPickerScreen(
+              title: args?['title'] ?? 'Seleccionar ubicación',
+              initialAddress: args?['initialAddress'],
+            );
+          },
+        },
+      ),
     );
   }
 }
