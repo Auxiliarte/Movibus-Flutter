@@ -88,7 +88,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
             userLongitude: position.longitude,
             destinationLatitude: widget.destinationLatitude!,
             destinationLongitude: widget.destinationLongitude!,
-            maxWalkingDistance: 6000, // 6 km máximo caminando
+            maxWalkingDistance: 1000, // 1 km máximo caminando
           ).timeout(const Duration(seconds: 15));
         } catch (e) {
           print('❌ Timeout or error in API call: $e');
