@@ -359,24 +359,43 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 8, left: 16, right: 16, bottom: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
-              _buildLegendDot(Colors.blue, isDashed: true),
-              const SizedBox(width: 4),
-              const Text('Camina a la estación', style: TextStyle(fontSize: 12)),
-              const SizedBox(width: 12),
-              _buildLegendDot(Colors.green),
-              const SizedBox(width: 4),
-              const Text('Trayecto en bus', style: TextStyle(fontSize: 12)),
-              const SizedBox(width: 12),
-              _buildLegendDot(Colors.orange, isDashed: true),
-              const SizedBox(width: 4),
-              const Text('Camina al destino', style: TextStyle(fontSize: 12)),
-              const SizedBox(width: 12),
-              _buildLegendDot(Colors.red),
-              const SizedBox(width: 4),
-              const Text('Autobús', style: TextStyle(fontSize: 12)),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.blue, isDashed: true),
+                  const SizedBox(width: 4),
+                  const Text('Camina', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.green),
+                  const SizedBox(width: 4),
+                  const Text('Autobús', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.orange, isDashed: true),
+                  const SizedBox(width: 4),
+                  const Text('Camina', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.red),
+                  const SizedBox(width: 4),
+                  const Text('Estación', style: TextStyle(fontSize: 11)),
+                ],
+              ),
             ],
           ),
         ),
