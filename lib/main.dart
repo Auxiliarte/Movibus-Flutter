@@ -12,7 +12,7 @@ import 'package:moventra/auth/register_screen.dart';
 import 'package:moventra/auth/reset_pass.dart';
 import 'screen/home_screen.dart';
 import 'screen/settings.dart';
-import 'screen/statistics_screen.dart';
+
 import 'screen/routes_screen.dart';
 import 'welcome.dart';
 import 'package:moventra/providers/themeprovider.dart';
@@ -65,7 +65,7 @@ class MyApp extends StatelessWidget {
           '/EditProfilePass': (_) => const ProfileEditPass(),
           '/EditProfileMail': (_) => const ProfileEditMail(),
           '/couponHistory': (_) => const CouponPromoHistorialScreen(),
-          '/statistics': (_) => const StatisticsScreen(),
+
           '/locationTest': (_) => const LocationTestScreen(),
           '/locationPicker': (context) {
             final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>?;

@@ -14,7 +14,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool showFavoritos = false;
   bool notificationsEnabled = false;
   int _currentIndex = 3;
   final AuthService _authService = AuthService();
@@ -80,49 +79,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const ProfileHeader(),
-            const SizedBox(height: 10),
-            const _SectionTitle(title: "Biblioteca"),
-            const SizedBox(height: 10),
-            Container(
-              color: theme.colorScheme.surface,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MenuItemTile(
-                    icon: Icons.favorite_border,
-                    title: "Favoritos",
-                    expanded: showFavoritos,
-                    onTap: () => setState(() => showFavoritos = !showFavoritos),
-                  ),
-                  if (showFavoritos)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        children: const [
-                          ListTile(
-                            title: Text(
-                              "Artículo 1",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                          ListTile(
-                            title: Text(
-                              "Artículo 2",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  MenuItemTile(
-                    icon: Icons.bar_chart_outlined,
-                    title: "Estadísticas",
-                    expanded: false,
-                    onTap: () => Navigator.pushNamed(context, '/statistics'),
-                  ),
-                ],
-              ),
-            ),
             const SizedBox(height: 10),
             const _SectionTitle(title: "Preferencias"),
             const SizedBox(height: 10),
