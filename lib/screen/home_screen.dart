@@ -21,8 +21,10 @@ import 'add_favorite_screen.dart';
 import 'package:moventra/widgets/Home/help_modal.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'destination_confirmation_screen.dart';
-import 'google_maps_test_screen.dart';
 import 'route_detail_screen.dart';
+import 'package:moventra/services/auth_service.dart';
+import 'package:moventra/services/profile_api_service.dart';
+import 'package:moventra/models/user_profile.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,10 +56,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingFavorites = false;
   String? _favoritesError;
 
+  // Estado para el perfil del usuario
+  String? _userToken;
+  UserProfile? _userProfile;
+  bool _isLoadingProfile = false;
+  String? _profileError;
+  final AuthService _authService = AuthService();
+  final ProfileApiService _profileApiService = ProfileApiService();
+
 
   @override
   void initState() {
     super.initState();
+    // Cargar perfil del usuario
+    _loadUserProfile();
     // Intentar obtener ubicación actual al iniciar
     _getCurrentLocation();
     // Cargar favoritos
@@ -122,6 +134,45 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       print('❌ Error getting current location: $e');
       // No mostrar error aquí, el usuario puede ingresar manualmente
+    }
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      // Obtener token de autenticación
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('No se encontró token de autenticación');
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _userToken = token;
+          _isLoadingProfile = true;
+          _profileError = null;
+        });
+      }
+
+      // Obtener perfil del usuario
+      final profile = await _profileApiService.getProfile(token);
+
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoadingProfile = false;
+        });
+      }
+
+      print('✅ Perfil de usuario cargado: ${profile.fullName}');
+    } catch (e) {
+      print('❌ Error al cargar perfil de usuario: $e');
+      if (mounted) {
+        setState(() {
+          _profileError = e.toString();
+          _isLoadingProfile = false;
+        });
+      }
     }
   }
 
@@ -337,13 +388,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Hola José',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Expanded(
+                        child: _buildDynamicGreeting(),
                       ),
                       Row(
                         children: [
@@ -365,26 +411,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                             tooltip: 'Actualizar ubicación actual',
                           ),
-                          IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const GoogleMapsTestScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.map,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            tooltip: 'Probar Google Maps',
-                          ),
-                          const CircleAvatar(
-                            radius: 25,
-                            backgroundImage: AssetImage('assets/Avatars.png'),
-                            backgroundColor: Colors.transparent,
-                          ),
+
+                          _buildUserAvatar(),
                         ],
                       ),
                     ],
@@ -519,6 +547,71 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDynamicGreeting() {
+    final theme = Theme.of(context);
+
+    if (_isLoadingProfile) {
+      return Text(
+        'Cargando...',
+        style: theme.textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+
+    if (_profileError != null || _userProfile == null) {
+      return Text(
+        'Hola Usuario',
+        style: theme.textTheme.titleMedium?.copyWith(
+          color: Colors.white,
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+
+    return Text(
+      'Hola ${_userProfile!.name}',
+      style: theme.textTheme.titleMedium?.copyWith(
+        color: Colors.white,
+        fontSize: 26,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildUserAvatar() {
+    if (_isLoadingProfile) {
+      return const CircleAvatar(
+        radius: 25,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
+      );
+    }
+
+    if (_profileError != null || _userProfile == null || _userProfile!.profilePhotoUrl == null) {
+      return const CircleAvatar(
+        radius: 25,
+        backgroundImage: AssetImage('assets/Avatars.png'),
+        backgroundColor: Colors.transparent,
+      );
+    }
+
+    return CircleAvatar(
+      radius: 25,
+      backgroundImage: NetworkImage(_userProfile!.profilePhotoUrl!),
+      backgroundColor: Colors.transparent,
+      onBackgroundImageError: (exception, stackTrace) {
+        print('Error cargando imagen de perfil en home: $exception');
+      },
+      child: Container(), // Container vacío para evitar icono sobre imagen
     );
   }
 
