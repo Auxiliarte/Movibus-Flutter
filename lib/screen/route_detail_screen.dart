@@ -281,8 +281,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             title: 'Caminar a la estación',
             subtitle: widget.routeSuggestion.departureStation.displayName,
             details: [
-              'Distancia: ${widget.routeSuggestion.departureStation.distanceFromUser?.toStringAsFixed(0) ?? "N/A"} metros',
-              'Tiempo estimado: ${widget.routeSuggestion.departureStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} minutos',
+              if (widget.routeSuggestion.departureStation.distanceFromUser != null)
+                'Distancia: ${widget.routeSuggestion.departureStation.distanceFromUser!.toStringAsFixed(0)} metros',
+              if (widget.routeSuggestion.departureStation.walkingTimeMinutes != null)
+                'Tiempo estimado: ${widget.routeSuggestion.departureStation.walkingTimeMinutes!.toStringAsFixed(1)} minutos',
+              if (widget.routeSuggestion.departureStation.distanceFromUser == null && widget.routeSuggestion.departureStation.walkingTimeMinutes == null)
+                'Información en proceso...',
             ],
             color: Colors.blue,
           ),
@@ -295,7 +299,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             title: 'Tomar el autobús',
             subtitle: widget.routeSuggestion.routeName,
             details: [
-              'Dirección: ${widget.routeSuggestion.direction == "forward" ? "Hacia adelante" : "Hacia atrás"}',
               'Estaciones: ${widget.routeSuggestion.stationsCount} paradas',
               'Tiempo estimado: ${widget.routeSuggestion.estimatedBusTimeFormatted}',
             ],
@@ -310,8 +313,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             title: 'Caminar al destino',
             subtitle: widget.destinationAddress,
             details: [
-              'Distancia: ${widget.routeSuggestion.arrivalStation.distanceToDestination?.toStringAsFixed(0) ?? "N/A"} metros',
-              'Tiempo estimado: ${widget.routeSuggestion.arrivalStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} minutos',
+              if (widget.routeSuggestion.arrivalStation.distanceToDestination != null)
+                'Distancia: ${widget.routeSuggestion.arrivalStation.distanceToDestination!.toStringAsFixed(0)} metros',
+              if (widget.routeSuggestion.arrivalStation.walkingTimeMinutes != null)
+                'Tiempo estimado: ${widget.routeSuggestion.arrivalStation.walkingTimeMinutes!.toStringAsFixed(1)} minutos',
+              if (widget.routeSuggestion.arrivalStation.distanceToDestination == null && widget.routeSuggestion.arrivalStation.walkingTimeMinutes == null)
+                'Información en proceso...',
             ],
             color: Colors.orange,
           ),
@@ -630,8 +637,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             children: [
               _buildDetailRow('Nombre', widget.routeSuggestion.departureStation.displayName),
               _buildDetailRow('Orden', '${widget.routeSuggestion.departureStation.order}'),
-              _buildDetailRow('Distancia desde ti', '${widget.routeSuggestion.departureStation.distanceFromUser?.toStringAsFixed(0) ?? "N/A"} m'),
-              _buildDetailRow('Tiempo caminando', '${widget.routeSuggestion.departureStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} min'),
+              if (widget.routeSuggestion.departureStation.distanceFromUser != null)
+                _buildDetailRow('Distancia desde ti', '${widget.routeSuggestion.departureStation.distanceFromUser!.toStringAsFixed(0)} m'),
+              if (widget.routeSuggestion.departureStation.walkingTimeMinutes != null)
+                _buildDetailRow('Tiempo caminando', '${widget.routeSuggestion.departureStation.walkingTimeMinutes!.toStringAsFixed(1)} min'),
             ],
           ),
           
@@ -643,8 +652,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             children: [
               _buildDetailRow('Nombre', widget.routeSuggestion.arrivalStation.displayName),
               _buildDetailRow('Orden', '${widget.routeSuggestion.arrivalStation.order}'),
-              _buildDetailRow('Distancia al destino', '${widget.routeSuggestion.arrivalStation.distanceToDestination?.toStringAsFixed(0) ?? "N/A"} m'),
-              _buildDetailRow('Tiempo caminando', '${widget.routeSuggestion.arrivalStation.walkingTimeMinutes?.toStringAsFixed(1) ?? "N/A"} min'),
+              if (widget.routeSuggestion.arrivalStation.distanceToDestination != null)
+                _buildDetailRow('Distancia al destino', '${widget.routeSuggestion.arrivalStation.distanceToDestination!.toStringAsFixed(0)} m'),
+              if (widget.routeSuggestion.arrivalStation.walkingTimeMinutes != null)
+                _buildDetailRow('Tiempo caminando', '${widget.routeSuggestion.arrivalStation.walkingTimeMinutes!.toStringAsFixed(1)} min'),
             ],
           ),
           
@@ -672,7 +683,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               _buildDetailRow('Tiempo total', '${widget.routeSuggestion.estimatedTotalTime.toStringAsFixed(1)} min'),
               _buildDetailRow('Tiempo en autobús', '${widget.routeSuggestion.estimatedBusTimeFormatted}'),
               _buildDetailRow('Distancia caminando', '${(widget.routeSuggestion.totalWalkingDistance / 1000).toStringAsFixed(1)} km'),
-              _buildDetailRow('Dirección', widget.routeSuggestion.direction == "forward" ? "Hacia adelante" : "Hacia atrás"),
+              _buildDetailRow('Total de paradas', '${widget.routeSuggestion.stationsCount}'),
             ],
           ),
         ],
