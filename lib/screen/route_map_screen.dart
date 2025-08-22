@@ -46,7 +46,10 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.ruta.nombre),
+        title: Text(
+          widget.ruta.nombre,
+          overflow: TextOverflow.ellipsis,
+        ),
         backgroundColor: Colors.deepPurple,
       ),
       body: Stack(

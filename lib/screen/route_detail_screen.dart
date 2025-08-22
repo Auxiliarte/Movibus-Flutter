@@ -178,7 +178,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalles de la Ruta'),
+        title: const Text(
+          'Detalles de la Ruta',
+          overflow: TextOverflow.ellipsis,
+        ),
         backgroundColor: AppColors.lightPrimaryButton,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -204,6 +207,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -220,7 +224,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                     Icon(Icons.directions_walk, color: Colors.white70, size: 16),
                     const SizedBox(width: 4),
                     Text(
-                      '${widget.routeSuggestion.totalWalkingDistance.toStringAsFixed(0)}m caminando',
+                      '${(widget.routeSuggestion.totalWalkingDistance / 1000).toStringAsFixed(1)}km caminando',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: Colors.white70,
                       ),
@@ -667,7 +671,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             children: [
               _buildDetailRow('Tiempo total', '${widget.routeSuggestion.estimatedTotalTime.toStringAsFixed(1)} min'),
               _buildDetailRow('Tiempo en autobús', '${widget.routeSuggestion.estimatedBusTimeFormatted}'),
-              _buildDetailRow('Distancia caminando', '${widget.routeSuggestion.totalWalkingDistance.toStringAsFixed(0)} m'),
+              _buildDetailRow('Distancia caminando', '${(widget.routeSuggestion.totalWalkingDistance / 1000).toStringAsFixed(1)} km'),
               _buildDetailRow('Dirección', widget.routeSuggestion.direction == "forward" ? "Hacia adelante" : "Hacia atrás"),
             ],
           ),
@@ -731,6 +735,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
                   ...details.map((detail) => Padding(
@@ -843,6 +848,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           Expanded(
@@ -853,6 +859,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                 fontSize: 14,
                 color: Colors.black87,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

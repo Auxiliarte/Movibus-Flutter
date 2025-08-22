@@ -101,6 +101,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
                 color: Colors.black87,
               ),
               textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 12),
             Text(

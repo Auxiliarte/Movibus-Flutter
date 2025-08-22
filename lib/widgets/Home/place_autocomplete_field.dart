@@ -375,6 +375,7 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
                     title: Text(
                       _getMainText(description),
                       style: const TextStyle(fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
                       _getSecondaryText(description),
@@ -382,6 +383,7 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
                         color: Colors.grey.shade600,
                         fontSize: 12,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     onTap: () => _onSuggestionTap(suggestion),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

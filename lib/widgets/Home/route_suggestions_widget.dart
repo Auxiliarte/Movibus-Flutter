@@ -415,21 +415,25 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  suggestion.routeName,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    suggestion.routeName,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -525,7 +529,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${suggestion.totalWalkingDistance.toStringAsFixed(0)}m caminando',
+                '${(suggestion.totalWalkingDistance / 1000).toStringAsFixed(1)}km caminando',
                 style: theme.textTheme.bodySmall,
               ),
             ],
@@ -602,6 +606,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                   icon: const Icon(Icons.info_outline, size: 16),
                   label: const Text('Ver Ruta'),
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
