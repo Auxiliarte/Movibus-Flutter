@@ -21,6 +21,7 @@ class RouteStationsMapScreen extends StatefulWidget {
 class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
+  Set<Polyline> _polylines = {};
   List<StationModel> _stations = [];
   bool _isLoading = true;
   String? _error;
@@ -52,6 +53,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
       setState(() {
         _stations = response.stations;
         _markers = _createMarkers(response.stations);
+        _polylines = _createPolylines(response.stations);
         _isLoading = false;
       });
 
@@ -69,23 +71,39 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
   }
 
   Set<Marker> _createMarkers(List<StationModel> stations) {
-    return stations.map((station) {
+    return stations.where((station) {
+      // Solo mostrar estación de inicio y fin para vista más limpia
+      return station.order == 0 || station.order == stations.length - 1;
+    }).map((station) {
       return Marker(
         markerId: MarkerId('station_${station.id}'),
         position: LatLng(station.latitude, station.longitude),
         infoWindow: InfoWindow(
-                        title: station.displayName,
-          snippet: 'Estación ${station.order + 1}',
+          title: station.order == 0 ? 'Inicio' : 'Fin',
+          snippet: station.displayName,
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(
-          station.order == 0 
-            ? BitmapDescriptor.hueGreen  // Primera estación
-            : station.order == stations.length - 1
-              ? BitmapDescriptor.hueRed  // Última estación
-              : BitmapDescriptor.hueBlue, // Estaciones intermedias
+          station.order == 0
+            ? BitmapDescriptor.hueGreen  // Estación de inicio
+            : BitmapDescriptor.hueRed,  // Estación de fin
         ),
       );
     }).toSet();
+  }
+
+  Set<Polyline> _createPolylines(List<StationModel> stations) {
+    if (stations.length < 2) return {};
+
+    return {
+      Polyline(
+        polylineId: const PolylineId('route_path'),
+        color: Colors.blue,
+        width: 4,
+        points: stations.map((station) {
+          return LatLng(station.latitude, station.longitude);
+        }).toList(),
+      ),
+    };
   }
 
   void _fitBounds() {
@@ -261,6 +279,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
                                 zoom: 12,
                               ),
                               markers: _markers,
+                              polylines: _polylines,
                               myLocationEnabled: true,
                               myLocationButtonEnabled: true,
                               zoomControlsEnabled: false,

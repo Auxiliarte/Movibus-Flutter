@@ -61,11 +61,20 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
               zoom: 13,
             ),
             markers: {
-              for (var loc in widget.ruta.locations)
+              // Solo marcadores de inicio y fin para vista más limpia
+              if (widget.ruta.locations.isNotEmpty)
                 Marker(
-                  markerId: MarkerId("${loc.order}-${loc.name}"),
-                  position: LatLng(loc.latitude, loc.longitude),
-                  infoWindow: InfoWindow(title: loc.name),
+                  markerId: const MarkerId("inicio"),
+                  position: LatLng(widget.ruta.locations.first.latitude, widget.ruta.locations.first.longitude),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+                  infoWindow: InfoWindow(title: "Inicio", snippet: widget.ruta.locations.first.name),
+                ),
+              if (widget.ruta.locations.length > 1)
+                Marker(
+                  markerId: const MarkerId("fin"),
+                  position: LatLng(widget.ruta.locations.last.latitude, widget.ruta.locations.last.longitude),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+                  infoWindow: InfoWindow(title: "Fin", snippet: widget.ruta.locations.last.name),
                 ),
             },
             polylines: {
