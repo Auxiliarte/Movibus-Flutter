@@ -155,20 +155,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                 },
                               ),
-                              Text(
-                                _stepTitles[_currentStep],
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'Quicksand',
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    _stepTitles[_currentStep],
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Quicksand',
+                                    ),
+                                  ),
                                 ),
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.settings_outlined),
-                                onPressed: () {
-                                  Navigator.pushNamed(context, '/settings');
-                                },
-                              ),
+                              const SizedBox(width: 48), // Espacio para mantener el balance visual
                             ],
                           ),
                         ),
