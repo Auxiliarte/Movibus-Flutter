@@ -124,14 +124,16 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       );
 
       // 2. Primera ruta en autobús (estación de partida -> estación de transbordo)
-      if (widget.routeSuggestion.transbordo != null) {
+      if (widget.routeSuggestion.transbordo != null && widget.routeSuggestion.trayectos != null) {
         final firstRoutePoints = <LatLng>[];
+
+        // Agregar estación de partida
         firstRoutePoints.add(LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude));
 
-        // Agregar estaciones intermedias de la primera ruta (si las hay)
-        for (final station in widget.routeSuggestion.intermediateStations) {
-          if (station.latitude != 0.0 && station.longitude != 0.0) {
-            firstRoutePoints.add(LatLng(station.latitude, station.longitude));
+        // Agregar todas las estaciones intermedias de la primera ruta
+        for (final estacion in widget.routeSuggestion.trayectos!.primeraRuta.estaciones) {
+          if (estacion.latitud != 0.0 && estacion.longitud != 0.0) {
+            firstRoutePoints.add(LatLng(estacion.latitud, estacion.longitud));
           }
         }
 
@@ -168,15 +170,23 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       }
 
       // 4. Segunda ruta en autobús (estación transbordo destino -> estación de llegada)
-      if (widget.routeSuggestion.transbordo != null) {
+      if (widget.routeSuggestion.transbordo != null && widget.routeSuggestion.trayectos != null) {
         final secondRoutePoints = <LatLng>[];
+
+        // Agregar estación de transbordo (destino)
         secondRoutePoints.add(LatLng(
           widget.routeSuggestion.transbordo!.latitudDestino,
           widget.routeSuggestion.transbordo!.longitudDestino,
         ));
 
-        // Agregar más estaciones si están disponibles (esto dependería de los datos de la API)
-        // Por ahora, conectar directamente a la estación de llegada
+        // Agregar todas las estaciones intermedias de la segunda ruta
+        for (final estacion in widget.routeSuggestion.trayectos!.segundaRuta.estaciones) {
+          if (estacion.latitud != 0.0 && estacion.longitud != 0.0) {
+            secondRoutePoints.add(LatLng(estacion.latitud, estacion.longitud));
+          }
+        }
+
+        // Agregar estación de llegada
         secondRoutePoints.add(LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude));
 
         _polylines.add(
@@ -223,11 +233,24 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       // 2. Trayecto en autobús (estación de partida -> intermedias -> estación de llegada)
       final busRoutePoints = <LatLng>[];
       busRoutePoints.add(LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude));
-      for (final station in widget.routeSuggestion.intermediateStations) {
-        if (station.latitude != 0.0 && station.longitude != 0.0) {
-          busRoutePoints.add(LatLng(station.latitude, station.longitude));
+
+      // Usar estaciones específicas del trayecto si están disponibles
+      if (widget.routeSuggestion.trayecto != null) {
+        // Usar las estaciones específicas de la API
+        for (final estacion in widget.routeSuggestion.trayecto!.estaciones) {
+          if (estacion.latitud != 0.0 && estacion.longitud != 0.0) {
+            busRoutePoints.add(LatLng(estacion.latitud, estacion.longitud));
+          }
+        }
+      } else {
+        // Fallback: usar estaciones intermedias generales
+        for (final station in widget.routeSuggestion.intermediateStations) {
+          if (station.latitude != 0.0 && station.longitude != 0.0) {
+            busRoutePoints.add(LatLng(station.latitude, station.longitude));
+          }
         }
       }
+
       busRoutePoints.add(LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude));
       _polylines.add(
         Polyline(

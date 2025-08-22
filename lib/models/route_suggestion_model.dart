@@ -11,6 +11,7 @@ class RouteSuggestionModel {
   final String tiempoTotal;
   final double puntuacion;
   final TrayectoInfo? trayecto;
+  final TrayectosInfo? trayectos;
   final TransbordoInfo? transbordo;
 
   RouteSuggestionModel({
@@ -24,6 +25,7 @@ class RouteSuggestionModel {
     required this.tiempoTotal,
     required this.puntuacion,
     this.trayecto,
+    this.trayectos,
     this.transbordo,
   });
 
@@ -39,6 +41,7 @@ class RouteSuggestionModel {
       tiempoTotal: json['tiempo_total'] ?? '0 minutos',
       puntuacion: (json['puntuacion'] ?? 0.0).toDouble(),
       trayecto: json['trayecto'] != null ? TrayectoInfo.fromJson(json['trayecto']) : null,
+      trayectos: json['trayectos'] != null ? TrayectosInfo.fromJson(json['trayectos']) : null,
       transbordo: json['transbordo_en'] != null ? TransbordoInfo.fromJson(json['transbordo_en']) : null,
     );
   }
@@ -55,6 +58,7 @@ class RouteSuggestionModel {
       'tiempo_total': tiempoTotal,
       'puntuacion': puntuacion,
       if (trayecto != null) 'trayecto': trayecto!.toJson(),
+      if (trayectos != null) 'trayectos': trayectos!.toJson(),
       if (transbordo != null) 'transbordo_en': transbordo!.toJson(),
     };
   }
@@ -99,15 +103,50 @@ class RouteSuggestionModel {
     walkingTimeMinutes: _extractTime(bajarseEn.tiempoCaminando),
   );
   String get direction => trayecto?.direccion ?? 'Dirección desconocida';
-  int get stationsCount => trayecto?.totalEstaciones ?? 0;
+  int get stationsCount {
+    if (tipo == 'transbordo' && trayectos != null) {
+      // Para transbordos, contar estaciones de ambas rutas
+      return (trayectos!.primeraRuta.totalEstaciones) +
+             (trayectos!.segundaRuta.totalEstaciones);
+    } else if (trayecto != null) {
+      // Para rutas directas
+      return trayecto!.totalEstaciones;
+    }
+    return 0;
+  }
+
   List<StationModel> get intermediateStations {
-    if (trayecto == null) return [];
-    return trayecto!.estaciones.map((estacion) => StationModel(
-      id: estacion.orden,
-      latitude: estacion.latitud,
-      longitude: estacion.longitud,
-      order: estacion.orden,
-    )).toList();
+    if (tipo == 'transbordo' && trayectos != null) {
+      // Para transbordos, combinar estaciones de ambas rutas
+      final allStations = <StationModel>[];
+
+      // Agregar estaciones de la primera ruta
+      allStations.addAll(trayectos!.primeraRuta.estaciones.map((estacion) => StationModel(
+        id: estacion.orden,
+        latitude: estacion.latitud,
+        longitude: estacion.longitud,
+        order: estacion.orden,
+      )));
+
+      // Agregar estaciones de la segunda ruta
+      allStations.addAll(trayectos!.segundaRuta.estaciones.map((estacion) => StationModel(
+        id: estacion.orden + 1000, // Offset para evitar conflictos de ID
+        latitude: estacion.latitud,
+        longitude: estacion.longitud,
+        order: estacion.orden,
+      )));
+
+      return allStations;
+    } else if (trayecto != null) {
+      // Para rutas directas
+      return trayecto!.estaciones.map((estacion) => StationModel(
+        id: estacion.orden,
+        latitude: estacion.latitud,
+        longitude: estacion.longitud,
+        order: estacion.orden,
+      )).toList();
+    }
+    return [];
   }
   double get estimatedBusTimeMinutes {
     // Extraer minutos del string "36 minutos"
@@ -265,6 +304,30 @@ class EstacionTrayecto {
         'latitud': latitud,
         'longitud': longitud,
       },
+    };
+  }
+}
+
+class TrayectosInfo {
+  final TrayectoInfo primeraRuta;
+  final TrayectoInfo segundaRuta;
+
+  TrayectosInfo({
+    required this.primeraRuta,
+    required this.segundaRuta,
+  });
+
+  factory TrayectosInfo.fromJson(Map<String, dynamic> json) {
+    return TrayectosInfo(
+      primeraRuta: TrayectoInfo.fromJson(json['primera_ruta'] ?? {}),
+      segundaRuta: TrayectoInfo.fromJson(json['segunda_ruta'] ?? {}),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'primera_ruta': primeraRuta.toJson(),
+      'segunda_ruta': segundaRuta.toJson(),
     };
   }
 }
