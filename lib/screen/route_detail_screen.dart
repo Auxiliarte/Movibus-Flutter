@@ -447,31 +447,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           ),
           
           const SizedBox(height: 20),
-          
-          // Botón de acción
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                // Aquí se podría abrir Google Maps o la app de navegación
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Funcionalidad de navegación próximamente'),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.navigation),
-              label: const Text('Abrir Navegación'),
-                              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.lightPrimaryButton,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-            ),
-          ),
+
         ],
       ),
     );
