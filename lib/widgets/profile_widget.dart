@@ -24,6 +24,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
   UserProfile? _profile;
   bool _isLoading = true;
   String? _error;
+  bool _profileImageError = false;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
       setState(() {
         _isLoading = true;
         _error = null;
+        _profileImageError = false;
       });
 
       final profile = await _apiService.getProfile(widget.token);
@@ -53,6 +55,7 @@ class _ProfileWidgetState extends State<ProfileWidget> {
 
   Future<void> _updateProfilePhoto() async {
     try {
+      print('Intentando seleccionar imagen de galería...');
       final XFile? image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 800,
@@ -60,13 +63,23 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         imageQuality: 85,
       );
 
+      print('Imagen seleccionada: ${image?.path}');
+
       if (image != null) {
+        print('Enviando imagen a la API...');
         final result = await _apiService.updateProfilePhoto(
           token: widget.token,
           imageFile: File(image.path),
         );
 
+        print('Resultado de la API: $result');
+
         if (result['status'] == 'success') {
+          // Resetear el estado de error de la imagen antes de recargar
+          setState(() {
+            _profileImageError = false;
+          });
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Foto de perfil actualizada'),
@@ -77,8 +90,11 @@ class _ProfileWidgetState extends State<ProfileWidget> {
         } else {
           _showError(result['message'] ?? 'Error desconocido');
         }
+      } else {
+        print('No se seleccionó ninguna imagen');
       }
     } catch (e) {
+      print('Error en _updateProfilePhoto: $e');
       _showError('Error al actualizar foto: $e');
     }
   }
@@ -195,12 +211,30 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundImage: _profile!.profilePhotoUrl != null
+                      backgroundImage: (_profile!.profilePhotoUrl != null &&
+                                        _profile!.profilePhotoUrl!.isNotEmpty &&
+                                        !_profileImageError)
                           ? NetworkImage(_profile!.profilePhotoUrl!)
                           : null,
-                      child: _profile!.profilePhotoUrl == null
-                          ? Icon(Icons.person, size: 60, color: Colors.grey[400])
+                      onBackgroundImageError: (_profile!.profilePhotoUrl != null &&
+                                             _profile!.profilePhotoUrl!.isNotEmpty &&
+                                             !_profileImageError)
+                          ? (exception, stackTrace) {
+                              print('Error cargando imagen de perfil: $exception');
+                              print('URL: ${_profile!.profilePhotoUrl}');
+                              // Marcar que hay error en la imagen
+                              if (mounted) {
+                                setState(() {
+                                  _profileImageError = true;
+                                });
+                              }
+                            }
                           : null,
+                      child: (_profile!.profilePhotoUrl == null ||
+                              _profile!.profilePhotoUrl!.isEmpty ||
+                              _profileImageError)
+                          ? Icon(Icons.person, size: 60, color: Colors.grey[400])
+                          : Container(), // Container vacío para evitar el icono sobre la imagen
                     ),
                     Positioned(
                       bottom: 0,
@@ -280,7 +314,10 @@ class _ProfileWidgetState extends State<ProfileWidget> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _updateProfilePhoto,
+                      onPressed: () async {
+                        print('Botón Cambiar Foto presionado');
+                        await _updateProfilePhoto();
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         foregroundColor: Colors.white,
