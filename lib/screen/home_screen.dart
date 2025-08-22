@@ -10,9 +10,12 @@ import 'package:moventra/widgets/Home/nearest_station_widget.dart';
 import 'package:moventra/widgets/Home/route_suggestions_widget.dart';
 import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
 import '../models/coupon.dart';
+import '../models/favorite_location.dart';
 import '../services/coupon_service.dart';
 import '../services/location_service.dart';
+import '../services/favorite_service.dart';
 import 'package:moventra/widgets/Home/place_autocomplete_field.dart';
+import 'add_favorite_screen.dart';
 import 'package:moventra/widgets/Home/help_modal.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'destination_confirmation_screen.dart';
@@ -43,12 +46,19 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingLocation = false;
   bool _showHelp = true; // Mostrar ayuda la primera vez
 
+  // Estado para favoritos
+  List<FavoriteLocation> _favorites = [];
+  bool _isLoadingFavorites = false;
+  String? _favoritesError;
+
 
   @override
   void initState() {
     super.initState();
     // Intentar obtener ubicación actual al iniciar
     _getCurrentLocation();
+    // Cargar favoritos
+    _loadFavorites();
     
     // Mostrar modal de ayuda después de un breve delay
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -387,24 +397,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text("Favoritos", style: theme.textTheme.titleMedium),
-                        Text(
-                          "Agregar",
-                          style: TextStyle(color: theme.colorScheme.primary),
+                        TextButton(
+                          onPressed: _showAddFavoriteModal,
+                          child: Text(
+                            "Agregar",
+                            style: TextStyle(color: theme.colorScheme.primary),
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    FavoriteCard(
-                      icon: Icons.home,
-                      title: "Casa",
-                      subtitle: "Malvas 112, fracc. Del Llano",
-                    ),
-                    const SizedBox(height: 8),
-                    FavoriteCard(
-                      icon: Icons.work,
-                      title: "Trabajo",
-                      subtitle: "Venustiano Carranza 500, col. Centro",
-                    ),
+                    _buildFavoritesSection(),
                   ],
                 ),
               ),
@@ -530,6 +533,170 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Métodos para manejar favoritos
+  Future<void> _loadFavorites() async {
+    setState(() {
+      _isLoadingFavorites = true;
+      _favoritesError = null;
+    });
+
+    try {
+      final favorites = await FavoriteService().getFavorites();
+      setState(() {
+        _favorites = favorites;
+        _isLoadingFavorites = false;
+      });
+    } catch (e) {
+      setState(() {
+        _favoritesError = e.toString();
+        _isLoadingFavorites = false;
+      });
+    }
+  }
+
+  Future<void> _deleteFavorite(int id) async {
+    try {
+      await FavoriteService().deleteFavorite(id);
+      await _loadFavorites(); // Recargar la lista
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ubicación favorita eliminada'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al eliminar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _onFavoriteTap(FavoriteLocation favorite) {
+    // Usar la ubicación favorita como origen o destino
+    setState(() {
+      if (_fromController.text.isEmpty) {
+        // Usar como origen
+        _fromController.text = favorite.address;
+        _fromLatitude = favorite.latitude;
+        _fromLongitude = favorite.longitude;
+      } else if (_toController.text.isEmpty) {
+        // Usar como destino
+        _toController.text = favorite.address;
+        _toLatitude = favorite.latitude;
+        _toLongitude = favorite.longitude;
+      }
+    });
+  }
+
+  void _showAddFavoriteModal() async {
+    final result = await Navigator.push<FavoriteLocation>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddFavoriteScreen(),
+      ),
+    );
+
+    if (result != null) {
+      // Recargar la lista de favoritos después de agregar uno nuevo
+      await _loadFavorites();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ubicación favorita "${result.name}" guardada'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildFavoritesSection() {
+    if (_favoritesError != null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Error al cargar favoritos: $_favoritesError',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+            IconButton(
+              onPressed: _loadFavorites,
+              icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.error),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_isLoadingFavorites) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).dialogBackgroundColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12),
+            Text('Cargando favoritos...'),
+          ],
+        ),
+      );
+    }
+
+    if (_favorites.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).dialogBackgroundColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.location_on_outlined, color: Colors.grey),
+            SizedBox(width: 12),
+            Text('No tienes ubicaciones favoritas'),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: _favorites.map((favorite) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: FavoriteCard(
+            favorite: favorite,
+            onTap: () => _onFavoriteTap(favorite),
+            onDelete: () => _deleteFavorite(favorite.id),
+          ),
+        );
+      }).toList(),
     );
   }
 }
