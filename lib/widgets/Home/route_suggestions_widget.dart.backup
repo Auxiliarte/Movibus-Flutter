@@ -100,94 +100,101 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
         });
         return;
       }
-
-      // Buscar sugerencias de rutas con timeout
-      print('🎯 Calling LocationApiService.suggestRoute...');
-      Map<String, dynamic> result;
-      try {
-        result = await LocationApiService.suggestRoute(
-          userLatitude: userLat,
-          userLongitude: userLng,
-          destinationLatitude: widget.destinationLatitude!,
-          destinationLongitude: widget.destinationLongitude!,
-          maxWalkingDistance: 1000, // 1 km máximo caminando
-        ).timeout(const Duration(seconds: 15));
-      } catch (e) {
-        print('❌ Timeout or error in API call: $e');
-        setState(() {
-          error = 'Tiempo de espera agotado al buscar rutas. Verifica tu conexión a internet.';
-          isLoading = false;
-        });
-        return;
-      }
-
-      print('🎯 API result: $result');
-
-      if (result['status'] == 'success') {
-        print('🎯 Success! Processing suggestions...');
+        
+        // Buscar sugerencias de rutas con timeout
+        print('🎯 Calling LocationApiService.suggestRoute...');
+        Map<String, dynamic> result;
         try {
-          final data = result['data'];
-          if (data == null) {
-            throw Exception('Campo "data" es null en la respuesta');
-          }
-
-          // Manejar tanto la estructura antigua (all_suggestions) como la nueva (data directo)
-          List<dynamic> allSuggestions;
-          if (data is List) {
-            // Nueva estructura: data es directamente la lista de sugerencias
-            allSuggestions = data;
-          } else if (data is Map && data.containsKey('all_suggestions')) {
-            // Estructura antigua: data contiene all_suggestions
-            allSuggestions = data['all_suggestions'];
-            if (allSuggestions == null) {
-              throw Exception('Campo "all_suggestions" es null en la respuesta');
-            }
-          } else {
-            throw Exception('Estructura de datos no reconocida en la respuesta');
-          }
-
-          print('🔍 allSuggestions type: ${allSuggestions.runtimeType}');
-          print('🔍 allSuggestions length: ${allSuggestions.length}');
-          print('🔍 First suggestion: ${allSuggestions.isNotEmpty ? allSuggestions.first : 'No suggestions'}');
-
-          final suggestions = <RouteSuggestionModel>[];
-
-          for (int i = 0; i < allSuggestions.length; i++) {
-            try {
-              print('🔍 Processing suggestion $i: ${allSuggestions[i]}');
-              final suggestion = RouteSuggestionModel.fromJson(allSuggestions[i]);
-              suggestions.add(suggestion);
-            } catch (e) {
-              print('❌ Error processing suggestion $i: $e');
-              print('❌ Suggestion data: ${allSuggestions[i]}');
-              // Continuar con la siguiente sugerencia sin crear fallback
-            }
-          }
-
-          print('🎯 Processed ${suggestions.length} suggestions');
-
+          result = await LocationApiService.suggestRoute(
+            userLatitude: userLat,
+            userLongitude: userLng,
+            destinationLatitude: widget.destinationLatitude!,
+            destinationLongitude: widget.destinationLongitude!,
+            maxWalkingDistance: 1000, // 1 km máximo caminando
+          ).timeout(const Duration(seconds: 15));
+        } catch (e) {
+          print('❌ Timeout or error in API call: $e');
           setState(() {
-            routeSuggestions = suggestions;
+            error = 'Tiempo de espera agotado al buscar rutas. Verifica tu conexión a internet.';
             isLoading = false;
           });
-        } catch (e) {
-          print('❌ Error processing suggestions: $e');
+          return;
+        }
+
+        print('🎯 API result: $result');
+
+        if (result['status'] == 'success') {
+          print('🎯 Success! Processing suggestions...');
+          try {
+            final data = result['data'];
+            if (data == null) {
+              throw Exception('Campo "data" es null en la respuesta');
+            }
+            
+            // Manejar tanto la estructura antigua (all_suggestions) como la nueva (data directo)
+            List<dynamic> allSuggestions;
+            if (data is List) {
+              // Nueva estructura: data es directamente la lista de sugerencias
+              allSuggestions = data;
+            } else if (data is Map && data.containsKey('all_suggestions')) {
+              // Estructura antigua: data contiene all_suggestions
+              allSuggestions = data['all_suggestions'];
+              if (allSuggestions == null) {
+                throw Exception('Campo "all_suggestions" es null en la respuesta');
+              }
+            } else {
+              throw Exception('Estructura de datos no reconocida en la respuesta');
+            }
+            
+            print('🔍 allSuggestions type: ${allSuggestions.runtimeType}');
+            print('🔍 allSuggestions length: ${allSuggestions.length}');
+            print('🔍 First suggestion: ${allSuggestions.isNotEmpty ? allSuggestions.first : 'No suggestions'}');
+            
+            final suggestions = <RouteSuggestionModel>[];
+            
+            for (int i = 0; i < allSuggestions.length; i++) {
+              try {
+                print('🔍 Processing suggestion $i: ${allSuggestions[i]}');
+                final suggestion = RouteSuggestionModel.fromJson(allSuggestions[i]);
+                suggestions.add(suggestion);
+              } catch (e) {
+                print('❌ Error processing suggestion $i: $e');
+                print('❌ Suggestion data: ${allSuggestions[i]}');
+                // Continuar con la siguiente sugerencia sin crear fallback
+              }
+            }
+
+            print('🎯 Processed ${suggestions.length} suggestions');
+
+            setState(() {
+              routeSuggestions = suggestions;
+              isLoading = false;
+            });
+          } catch (e) {
+            print('❌ Error processing suggestions: $e');
+            setState(() {
+              error = 'Error al procesar las sugerencias de rutas: ${e.toString()}';
+              isLoading = false;
+            });
+          }
+        } else if (result['status'] == 'error' && result['message']?.contains('No se encontraron rutas') == true) {
+          // This is a valid response indicating no routes were found
+          print('🎯 No routes found - this is expected behavior');
           setState(() {
-            error = 'Error al procesar las sugerencias de rutas: ${e.toString()}';
+            routeSuggestions = []; // Empty list to show "no routes" message
+            isLoading = false;
+          });
+        } else {
+          print('❌ API returned error status: ${result['status']}');
+          setState(() {
+            error = result['message'] ?? 'Error al obtener sugerencias';
             isLoading = false;
           });
         }
-      } else if (result['status'] == 'error' && result['message']?.contains('No se encontraron rutas') == true) {
-        // This is a valid response indicating no routes were found
-        print('🎯 No routes found - this is expected behavior');
-        setState(() {
-          routeSuggestions = []; // Empty list to show "no routes" message
-          isLoading = false;
-        });
       } else {
-        print('❌ API returned error status: ${result['status']}');
+        print('❌ Could not get current position');
         setState(() {
-          error = result['message'] ?? 'Error al obtener sugerencias';
+          error = 'No se pudo obtener la ubicación actual';
           isLoading = false;
         });
       }
@@ -209,15 +216,15 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   @override
   void didUpdateWidget(RouteSuggestionsWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-
+    
     // Si las coordenadas del destino cambiaron y no estamos cargando, buscar automáticamente
     if (widget.destinationLatitude != oldWidget.destinationLatitude ||
         widget.destinationLongitude != oldWidget.destinationLongitude) {
-
-      if (widget.destinationLatitude != null &&
-          widget.destinationLongitude != null &&
+      
+      if (widget.destinationLatitude != null && 
+          widget.destinationLongitude != null && 
           !isLoading) {
-
+        
         print('🎯 Destination coordinates changed, automatically searching for routes');
         WidgetsBinding.instance.addPostFrameCallback((_) {
           findRouteSuggestions();
@@ -229,7 +236,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
+    
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
@@ -262,7 +269,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                 if (widget.destinationLatitude != null && widget.destinationLongitude != null)
                   ElevatedButton.icon(
                     onPressed: isLoading ? null : findRouteSuggestions,
-                    icon: isLoading
+                    icon: isLoading 
                       ? const SizedBox(
                           width: 16,
                           height: 16,
@@ -414,7 +421,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
 
   Widget _buildSuggestionCard(RouteSuggestionModel suggestion) {
     final theme = Theme.of(context);
-
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -713,7 +720,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
     // Obtener la ubicación actual del usuario si no está disponible
     double userLat = widget.userLatitude ?? 0.0;
     double userLng = widget.userLongitude ?? 0.0;
-
+    
     if (userLat == 0.0 && userLng == 0.0) {
       try {
         final position = await LocationService.getCurrentLocation();
@@ -745,4 +752,4 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
       );
     }
   }
-}
+} 

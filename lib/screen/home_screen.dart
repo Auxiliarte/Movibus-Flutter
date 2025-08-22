@@ -85,6 +85,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
+    // 🚨 SOLUCIÓN: No sobreescribir si el usuario ya seleccionó una ubicación
+    if (_fromLatitude != null && _fromLongitude != null &&
+        _fromController.text.isNotEmpty &&
+        !_fromController.text.contains('Mi ubicación actual')) {
+      print('⏭️ Skipping current location - user has selected custom location: (${_fromLatitude}, $_fromLongitude) - ${_fromController.text}');
+      return;
+    }
+
     setState(() {
       _isLoadingLocation = true;
     });
@@ -96,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
           position.latitude,
           position.longitude,
         );
-        
+
         setState(() {
           _fromLatitude = position.latitude;
           _fromLongitude = position.longitude;
@@ -104,13 +112,15 @@ class _HomeScreenState extends State<HomeScreen> {
           _fromController.text = _currentLocationAddress!;
           _isLoadingLocation = false;
         });
-        
+
         _checkInputs();
+        print('✅ Set current location: (${_fromLatitude}, $_fromLongitude) - ${_currentLocationAddress}');
       }
     } catch (e) {
       setState(() {
         _isLoadingLocation = false;
       });
+      print('❌ Error getting current location: $e');
       // No mostrar error aquí, el usuario puede ingresar manualmente
     }
   }
@@ -149,23 +159,62 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onOriginSelected(String name, double lat, double lng) {
+    print('🎯 Origin selected: $name at ($lat, $lng)');
+    print('🎯 Previous origin: _fromLatitude=$_fromLatitude, _fromLongitude=$_fromLongitude');
+    print('🎯 Previous origin text: ${_fromController.text}');
+
     setState(() {
       _fromLatitude = lat;
       _fromLongitude = lng;
+      _fromController.text = name;
       _showHelp = false; // Ocultar ayuda cuando el usuario selecciona origen
       _checkInputs();
     });
+
+    print('✅ Origin updated to: ($lat, $lng) - $name');
   }
 
   void _onDestinationSelected(String name, double lat, double lng) async {
     print('🎯 Destination selected: $name at ($lat, $lng)');
-    
+    print('🎯 Current origin coordinates: _fromLatitude=$_fromLatitude, _fromLongitude=$_fromLongitude');
+    print('🎯 Current origin address: ${_fromController.text}');
+
+    // Verificar si tenemos coordenadas válidas del origen
+    if (_fromLatitude == null || _fromLongitude == null) {
+      print('⚠️  No origin coordinates available, trying to get current location...');
+      print('⚠️  Origin text: ${_fromController.text}');
+
+      // Si no hay coordenadas pero sí hay texto en el campo, intentar obtener ubicación actual
+      final currentPosition = await LocationService.getCurrentLocation();
+      if (currentPosition != null) {
+        setState(() {
+          _fromLatitude = currentPosition.latitude;
+          _fromLongitude = currentPosition.longitude;
+          if (_fromController.text.isEmpty || _fromController.text == "Mi ubicación actual") {
+            _fromController.text = "Mi ubicación actual";
+          }
+        });
+        print('✅ Got current location: ($_fromLatitude, $_fromLongitude)');
+      } else {
+        print('❌ Could not get current location, using default SLP coordinates');
+        setState(() {
+          _fromLatitude = 22.1565; // SLP center
+          _fromLongitude = -100.9855;
+          if (_fromController.text.isEmpty) {
+            _fromController.text = "San Luis Potosí";
+          }
+        });
+      }
+    } else {
+      print('✅ Using existing origin coordinates: ($_fromLatitude, $_fromLongitude) - ${_fromController.text}');
+    }
+
     // Ocultar teclado antes de continuar
     FocusScope.of(context).unfocus();
-    
+
     // Pequeño delay para asegurar que el teclado se oculte completamente
     await Future.delayed(const Duration(milliseconds: 150));
-    
+
     setState(() {
       _toLatitude = lat;
       _toLongitude = lng;
@@ -176,15 +225,17 @@ class _HomeScreenState extends State<HomeScreen> {
     // Verificar que el widget aún está montado antes de navegar
     if (!mounted) return;
 
-    print('🎯 About to navigate to confirmation screen...');
-    
+    print('🎯 About to navigate to confirmation screen with:');
+    print('   Origin: (${_fromLatitude}, ${_fromLongitude}) - ${_fromController.text}');
+    print('   Destination: ($lat, $lng) - $name');
+
     try {
       // Navegar a la pantalla de confirmación del destino
       final result = await Navigator.of(context).push<Map<String, dynamic>>(
         MaterialPageRoute(
           builder: (context) => DestinationConfirmationScreen(
-            originLat: _fromLatitude ?? 22.1565,
-            originLng: _fromLongitude ?? -100.9855,
+            originLat: _fromLatitude!,
+            originLng: _fromLongitude!,
             destinationLat: lat,
             destinationLng: lng,
             originAddress: _fromController.text.isNotEmpty ? _fromController.text : null,
