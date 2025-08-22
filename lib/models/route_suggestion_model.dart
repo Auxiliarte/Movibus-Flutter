@@ -2,7 +2,9 @@ import 'station_model.dart';
 
 class RouteSuggestionModel {
   final String tipo;
-  final String ruta;
+  final String? ruta; // Para rutas directas
+  final String? primeraRuta; // Para transbordos
+  final String? segundaRuta; // Para transbordos
   final StationInfo subirEn;
   final StationInfo bajarseEn;
   final String tiempoEnCamion;
@@ -13,7 +15,9 @@ class RouteSuggestionModel {
 
   RouteSuggestionModel({
     required this.tipo,
-    required this.ruta,
+    this.ruta,
+    this.primeraRuta,
+    this.segundaRuta,
     required this.subirEn,
     required this.bajarseEn,
     required this.tiempoEnCamion,
@@ -26,35 +30,57 @@ class RouteSuggestionModel {
   factory RouteSuggestionModel.fromJson(Map<String, dynamic> json) {
     return RouteSuggestionModel(
       tipo: json['tipo'] ?? 'directo',
-      ruta: json['ruta'] ?? 'Ruta sin nombre',
+      ruta: json['ruta'], // Solo para rutas directas
+      primeraRuta: json['primera_ruta'], // Para transbordos
+      segundaRuta: json['segunda_ruta'], // Para transbordos
       subirEn: StationInfo.fromJson(json['subir_en'] ?? {}),
       bajarseEn: StationInfo.fromJson(json['bajarse_en'] ?? {}),
       tiempoEnCamion: json['tiempo_en_camion'] ?? '0 minutos',
       tiempoTotal: json['tiempo_total'] ?? '0 minutos',
       puntuacion: (json['puntuacion'] ?? 0.0).toDouble(),
       trayecto: json['trayecto'] != null ? TrayectoInfo.fromJson(json['trayecto']) : null,
-      transbordo: json['transbordo'] != null ? TransbordoInfo.fromJson(json['transbordo']) : null,
+      transbordo: json['transbordo_en'] != null ? TransbordoInfo.fromJson(json['transbordo_en']) : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'tipo': tipo,
-      'ruta': ruta,
+      if (ruta != null) 'ruta': ruta,
+      if (primeraRuta != null) 'primera_ruta': primeraRuta,
+      if (segundaRuta != null) 'segunda_ruta': segundaRuta,
       'subir_en': subirEn.toJson(),
       'bajarse_en': bajarseEn.toJson(),
       'tiempo_en_camion': tiempoEnCamion,
       'tiempo_total': tiempoTotal,
       'puntuacion': puntuacion,
       if (trayecto != null) 'trayecto': trayecto!.toJson(),
-      if (transbordo != null) 'transbordo': transbordo!.toJson(),
+      if (transbordo != null) 'transbordo_en': transbordo!.toJson(),
     };
   }
 
   // Métodos de conveniencia para compatibilidad con código existente
-  String get routeName => ruta;
-  String get routeDescription => 'Ruta de transporte público';
-  int get routeId => ruta.hashCode;
+  String get routeName {
+    if (tipo == 'transbordo') {
+      // Para transbordos, mostrar ambas rutas
+      final ruta1 = primeraRuta ?? 'Ruta sin nombre';
+      final ruta2 = segundaRuta ?? 'Ruta sin nombre';
+      return '$ruta1 → $ruta2';
+    } else {
+      // Para rutas directas, usar el campo ruta
+      return ruta ?? 'Ruta sin nombre';
+    }
+  }
+
+  String get routeDescription {
+    if (tipo == 'transbordo') {
+      return 'Transbordo entre dos rutas';
+    } else {
+      return 'Ruta directa de transporte público';
+    }
+  }
+
+  int get routeId => routeName.hashCode;
   int get totalStations => 0;
   StationModel get departureStation => StationModel(
     id: 1,

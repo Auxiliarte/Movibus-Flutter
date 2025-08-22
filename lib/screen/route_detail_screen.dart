@@ -51,9 +51,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   }
 
   void _initializeMap() {
-    
-    _markers = {
-      // Marcador de estación de partida
+    _markers = {};
+
+    // Agregar marcadores base
+    _markers.add(
       Marker(
         markerId: const MarkerId('departure_station'),
         position: LatLng(
@@ -66,7 +67,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           snippet: widget.routeSuggestion.departureStation.displayName,
         ),
       ),
-      // Marcador de estación de llegada
+    );
+
+    // Agregar marcador de estación de llegada
+    _markers.add(
       Marker(
         markerId: const MarkerId('arrival_station'),
         position: LatLng(
@@ -76,62 +80,178 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         infoWindow: InfoWindow(
           title: 'Fin',
-          snippet: widget.routeSuggestion.arrivalStation.displayName,
+          snippet: widget.destinationAddress,
         ),
       ),
-    };
+    );
 
-    // Solo mostrar marcadores esenciales para el trayecto del autobús
-    // Eliminadas las estaciones intermedias para una vista más limpia
+    // Agregar marcador de transbordo si existe
+    if (widget.routeSuggestion.transbordo != null) {
+      _markers.add(
+        Marker(
+          markerId: const MarkerId('transfer_station'),
+          position: LatLng(
+            widget.routeSuggestion.transbordo!.latitudOrigen,
+            widget.routeSuggestion.transbordo!.longitudOrigen,
+          ),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+          infoWindow: InfoWindow(
+            title: 'Transbordo',
+            snippet: '${widget.routeSuggestion.transbordo!.estacionOrigen} → ${widget.routeSuggestion.transbordo!.estacionDestino}',
+          ),
+        ),
+      );
+    }
 
     // --- POLILÍNEAS ---
     _polylines = {};
 
-    // 1. Trayecto caminando (usuario -> estación de partida)
-    _polylines.add(
-      Polyline(
-        polylineId: const PolylineId('walk_to_departure'),
-        color: Colors.blue,
-        width: 4,
-        patterns: [PatternItem.dash(20), PatternItem.gap(10)],
-        points: [
-          LatLng(widget.userLatitude, widget.userLongitude),
-          LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
-        ],
-      ),
-    );
+    if (widget.routeSuggestion.tipo == 'transbordo') {
+      // --- RUTA CON TRANSBORDO ---
 
-    // 2. Trayecto en autobús (estación de partida -> intermedias -> estación de llegada)
-    final busRoutePoints = <LatLng>[];
-    busRoutePoints.add(LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude));
-    for (final station in widget.routeSuggestion.intermediateStations) {
-      if (station.latitude != 0.0 && station.longitude != 0.0) {
-        busRoutePoints.add(LatLng(station.latitude, station.longitude));
+      // 1. Trayecto caminando (usuario -> estación de partida)
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('walk_to_departure'),
+          color: Colors.blue,
+          width: 4,
+          patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+          points: [
+            LatLng(widget.userLatitude, widget.userLongitude),
+            LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
+          ],
+        ),
+      );
+
+      // 2. Primera ruta en autobús (estación de partida -> estación de transbordo)
+      if (widget.routeSuggestion.transbordo != null) {
+        final firstRoutePoints = <LatLng>[];
+        firstRoutePoints.add(LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude));
+
+        // Agregar estaciones intermedias de la primera ruta (si las hay)
+        for (final station in widget.routeSuggestion.intermediateStations) {
+          if (station.latitude != 0.0 && station.longitude != 0.0) {
+            firstRoutePoints.add(LatLng(station.latitude, station.longitude));
+          }
+        }
+
+        // Agregar estación de transbordo (origen)
+        firstRoutePoints.add(LatLng(
+          widget.routeSuggestion.transbordo!.latitudOrigen,
+          widget.routeSuggestion.transbordo!.longitudOrigen,
+        ));
+
+        _polylines.add(
+          Polyline(
+            polylineId: const PolylineId('first_bus_route'),
+            color: Colors.green,
+            width: 6,
+            points: firstRoutePoints,
+          ),
+        );
       }
-    }
-    busRoutePoints.add(LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude));
-    _polylines.add(
-      Polyline(
-        polylineId: const PolylineId('bus_route'),
-        color: Colors.green,
-        width: 6,
-        points: busRoutePoints,
-      ),
-    );
 
-    // 3. Trayecto caminando (estación de llegada -> destino)
-    _polylines.add(
-      Polyline(
-        polylineId: const PolylineId('walk_to_destination'),
-        color: Colors.orange,
-        width: 4,
-        patterns: [PatternItem.dash(20), PatternItem.gap(10)],
-        points: [
-          LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
-          LatLng(widget.destinationLatitude, widget.destinationLongitude),
-        ],
-      ),
-    );
+      // 3. Trayecto caminando en transbordo (estación transbordo origen -> estación transbordo destino)
+      if (widget.routeSuggestion.transbordo != null) {
+        _polylines.add(
+          Polyline(
+            polylineId: const PolylineId('transfer_walk'),
+            color: Colors.purple,
+            width: 4,
+            patterns: [PatternItem.dash(15), PatternItem.gap(8)],
+            points: [
+              LatLng(widget.routeSuggestion.transbordo!.latitudOrigen, widget.routeSuggestion.transbordo!.longitudOrigen),
+              LatLng(widget.routeSuggestion.transbordo!.latitudDestino, widget.routeSuggestion.transbordo!.longitudDestino),
+            ],
+          ),
+        );
+      }
+
+      // 4. Segunda ruta en autobús (estación transbordo destino -> estación de llegada)
+      if (widget.routeSuggestion.transbordo != null) {
+        final secondRoutePoints = <LatLng>[];
+        secondRoutePoints.add(LatLng(
+          widget.routeSuggestion.transbordo!.latitudDestino,
+          widget.routeSuggestion.transbordo!.longitudDestino,
+        ));
+
+        // Agregar más estaciones si están disponibles (esto dependería de los datos de la API)
+        // Por ahora, conectar directamente a la estación de llegada
+        secondRoutePoints.add(LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude));
+
+        _polylines.add(
+          Polyline(
+            polylineId: const PolylineId('second_bus_route'),
+            color: Colors.teal,
+            width: 6,
+            points: secondRoutePoints,
+          ),
+        );
+      }
+
+      // 5. Trayecto caminando final (estación de llegada -> destino)
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('walk_to_destination'),
+          color: Colors.orange,
+          width: 4,
+          patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+          points: [
+            LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
+            LatLng(widget.destinationLatitude, widget.destinationLongitude),
+          ],
+        ),
+      );
+
+    } else {
+      // --- RUTA DIRECTA ---
+
+      // 1. Trayecto caminando (usuario -> estación de partida)
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('walk_to_departure'),
+          color: Colors.blue,
+          width: 4,
+          patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+          points: [
+            LatLng(widget.userLatitude, widget.userLongitude),
+            LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
+          ],
+        ),
+      );
+
+      // 2. Trayecto en autobús (estación de partida -> intermedias -> estación de llegada)
+      final busRoutePoints = <LatLng>[];
+      busRoutePoints.add(LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude));
+      for (final station in widget.routeSuggestion.intermediateStations) {
+        if (station.latitude != 0.0 && station.longitude != 0.0) {
+          busRoutePoints.add(LatLng(station.latitude, station.longitude));
+        }
+      }
+      busRoutePoints.add(LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude));
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('bus_route'),
+          color: Colors.green,
+          width: 6,
+          points: busRoutePoints,
+        ),
+      );
+
+      // 3. Trayecto caminando (estación de llegada -> destino)
+      _polylines.add(
+        Polyline(
+          polylineId: const PolylineId('walk_to_destination'),
+          color: Colors.orange,
+          width: 4,
+          patterns: [PatternItem.dash(20), PatternItem.gap(10)],
+          points: [
+            LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
+            LatLng(widget.destinationLatitude, widget.destinationLongitude),
+          ],
+        ),
+      );
+    }
   }
 
   @override
@@ -258,8 +378,10 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           // Sección 2: Tomar el autobús
           _buildInstructionCard(
             icon: Icons.directions_bus,
-            title: 'Tomar el autobús',
-            subtitle: widget.routeSuggestion.routeName,
+            title: widget.routeSuggestion.tipo == 'transbordo' ? 'Primera ruta' : 'Tomar el autobús',
+            subtitle: widget.routeSuggestion.tipo == 'transbordo'
+                ? (widget.routeSuggestion.primeraRuta ?? 'Ruta no especificada')
+                : widget.routeSuggestion.routeName,
             details: [
               'Estaciones: ${widget.routeSuggestion.stationsCount} paradas',
               'Tiempo estimado: ${widget.routeSuggestion.estimatedBusTimeFormatted}',
@@ -268,8 +390,24 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           ),
           
           const SizedBox(height: 16),
-          
-          // Sección 3: Caminar al destino
+
+          // Sección 3: Transbordo (solo si es un transbordo)
+          if (widget.routeSuggestion.transbordo != null) ...[
+            _buildInstructionCard(
+              icon: Icons.swap_horiz,
+              title: 'Transbordo',
+              subtitle: '${widget.routeSuggestion.transbordo!.estacionOrigen} → ${widget.routeSuggestion.transbordo!.estacionDestino}',
+              details: [
+                'Distancia: ${widget.routeSuggestion.transbordo!.distanciaCaminando}',
+                'Tiempo estimado: ${widget.routeSuggestion.transbordo!.tiempoCaminando}',
+                'Segunda ruta: ${widget.routeSuggestion.segundaRuta ?? 'No especificada'}',
+              ],
+              color: Colors.purple,
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Sección 4: Caminar al destino
           _buildInstructionCard(
             icon: Icons.directions_walk,
             title: 'Caminar al destino',
@@ -325,7 +463,58 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             alignment: WrapAlignment.center,
             spacing: 8,
             runSpacing: 4,
-            children: [
+            children: widget.routeSuggestion.tipo == 'transbordo' ? [
+              // Leyenda para transbordos
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.blue, isDashed: true),
+                  const SizedBox(width: 4),
+                  const Text('Camina', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.green),
+                  const SizedBox(width: 4),
+                  const Text('1ª Ruta', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.purple, isDashed: true),
+                  const SizedBox(width: 4),
+                  const Text('Transbordo', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.teal),
+                  const SizedBox(width: 4),
+                  const Text('2ª Ruta', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.orange, isDashed: true),
+                  const SizedBox(width: 4),
+                  const Text('Camina', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLegendDot(Colors.red),
+                  const SizedBox(width: 4),
+                  const Text('Estación', style: TextStyle(fontSize: 11)),
+                ],
+              ),
+            ] : [
+              // Leyenda para rutas directas
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -544,11 +733,30 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             title: 'Información de la Ruta',
             children: [
               _buildDetailRow('Nombre', widget.routeSuggestion.routeName),
+              _buildDetailRow('Tipo', widget.routeSuggestion.tipo == 'transbordo' ? 'Transbordo' : 'Ruta Directa'),
               _buildDetailRow('Descripción', widget.routeSuggestion.routeDescription),
-              _buildDetailRow('Total de paradas', '${widget.routeSuggestion.totalStations}'),
+              if (widget.routeSuggestion.tipo == 'transbordo') ...[
+                _buildDetailRow('Primera ruta', widget.routeSuggestion.primeraRuta ?? 'No especificada'),
+                _buildDetailRow('Segunda ruta', widget.routeSuggestion.segundaRuta ?? 'No especificada'),
+              ],
+              _buildDetailRow('Total de paradas', '${widget.routeSuggestion.stationsCount}'),
               _buildDetailRow('Puntuación', '${(widget.routeSuggestion.score * 100).toStringAsFixed(0)}%'),
             ],
           ),
+
+          // Información de transbordo (si existe)
+          if (widget.routeSuggestion.transbordo != null) ...[
+            const SizedBox(height: 16),
+            _buildDetailCard(
+              title: 'Información del Transbordo',
+              children: [
+                _buildDetailRow('Estación origen', widget.routeSuggestion.transbordo!.estacionOrigen),
+                _buildDetailRow('Estación destino', widget.routeSuggestion.transbordo!.estacionDestino),
+                _buildDetailRow('Distancia caminando', widget.routeSuggestion.transbordo!.distanciaCaminando),
+                _buildDetailRow('Tiempo caminando', widget.routeSuggestion.transbordo!.tiempoCaminando),
+              ],
+            ),
+          ],
           
           const SizedBox(height: 16),
           
