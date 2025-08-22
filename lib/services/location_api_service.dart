@@ -56,6 +56,7 @@ class LocationApiService {
       'user_longitude': userLongitude,
       'destination_latitude': destinationLatitude,
       'destination_longitude': destinationLongitude,
+      'enable_transfers': true,
       if (maxWalkingDistance != null) 'max_walking_distance': maxWalkingDistance,
     };
     

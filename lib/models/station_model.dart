@@ -37,6 +37,9 @@ class StationModel {
 
   // Método para obtener el identificador de la estación
   String get displayName {
+    if (distanceMeters != null && walkingTimeMinutes != null) {
+      return 'Estación $id (${distanceMeters!.toStringAsFixed(0)}m, ${walkingTimeMinutes!.toStringAsFixed(0)}min)';
+    }
     return 'Estación $id';
   }
 } 

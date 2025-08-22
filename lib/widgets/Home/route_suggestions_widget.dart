@@ -104,9 +104,43 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
         if (result['status'] == 'success') {
           print('🎯 Success! Processing suggestions...');
           try {
-            final suggestions = (result['data']['all_suggestions'] as List)
-                .map((suggestion) => RouteSuggestionModel.fromJson(suggestion))
-                .toList();
+            final data = result['data'];
+            if (data == null) {
+              throw Exception('Campo "data" es null en la respuesta');
+            }
+            
+            // Manejar tanto la estructura antigua (all_suggestions) como la nueva (data directo)
+            List<dynamic> allSuggestions;
+            if (data is List) {
+              // Nueva estructura: data es directamente la lista de sugerencias
+              allSuggestions = data;
+            } else if (data is Map && data.containsKey('all_suggestions')) {
+              // Estructura antigua: data contiene all_suggestions
+              allSuggestions = data['all_suggestions'];
+              if (allSuggestions == null) {
+                throw Exception('Campo "all_suggestions" es null en la respuesta');
+              }
+            } else {
+              throw Exception('Estructura de datos no reconocida en la respuesta');
+            }
+            
+            print('🔍 allSuggestions type: ${allSuggestions.runtimeType}');
+            print('🔍 allSuggestions length: ${allSuggestions.length}');
+            print('🔍 First suggestion: ${allSuggestions.isNotEmpty ? allSuggestions.first : 'No suggestions'}');
+            
+            final suggestions = <RouteSuggestionModel>[];
+            
+            for (int i = 0; i < allSuggestions.length; i++) {
+              try {
+                print('🔍 Processing suggestion $i: ${allSuggestions[i]}');
+                final suggestion = RouteSuggestionModel.fromJson(allSuggestions[i]);
+                suggestions.add(suggestion);
+              } catch (e) {
+                print('❌ Error processing suggestion $i: $e');
+                print('❌ Suggestion data: ${allSuggestions[i]}');
+                // Continuar con la siguiente sugerencia sin crear fallback
+              }
+            }
 
             print('🎯 Processed ${suggestions.length} suggestions');
 
@@ -117,7 +151,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
           } catch (e) {
             print('❌ Error processing suggestions: $e');
             setState(() {
-              error = 'Error al procesar las sugerencias de rutas';
+              error = 'Error al procesar las sugerencias de rutas: ${e.toString()}';
               isLoading = false;
             });
           }
@@ -422,11 +456,22 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  suggestion.departureStation.displayName,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      suggestion.subirEn.estacion,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    Text(
+                      '${suggestion.subirEn.distanciaCaminando} • ${suggestion.subirEn.tiempoCaminando}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -441,9 +486,20 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  suggestion.arrivalStation.displayName,
-                  style: theme.textTheme.bodyMedium,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      suggestion.bajarseEn.estacion,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    Text(
+                      '${suggestion.bajarseEn.distanciaCaminando} • ${suggestion.bajarseEn.tiempoCaminando}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.secondary,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
