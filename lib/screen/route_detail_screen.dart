@@ -114,7 +114,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             position: LatLng(station.latitude, station.longitude),
             icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
             infoWindow: InfoWindow(
-              title: station.name,
+                                      title: station.displayName,
               snippet: 'Estación intermedia',
             ),
           ),
@@ -490,7 +490,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     // Agregar estación de partida
     stations.add({
       'id': widget.routeSuggestion.departureStation.id,
-      'name': widget.routeSuggestion.departureStation.name,
+              'name': widget.routeSuggestion.departureStation.displayName,
       'latitude': widget.routeSuggestion.departureStation.latitude,
       'longitude': widget.routeSuggestion.departureStation.longitude,
       'order': widget.routeSuggestion.departureStation.order,
@@ -500,7 +500,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     for (final station in widget.routeSuggestion.intermediateStations) {
       stations.add({
         'id': station.id,
-        'name': station.name,
+        'name': station.displayName,
         'latitude': station.latitude,
         'longitude': station.longitude,
         'order': station.order,
@@ -510,7 +510,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     // Agregar estación de llegada
     stations.add({
       'id': widget.routeSuggestion.arrivalStation.id,
-      'name': widget.routeSuggestion.arrivalStation.name,
+              'name': widget.routeSuggestion.arrivalStation.displayName,
       'latitude': widget.routeSuggestion.arrivalStation.latitude,
       'longitude': widget.routeSuggestion.arrivalStation.longitude,
       'order': widget.routeSuggestion.arrivalStation.order,
@@ -604,7 +604,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                   _buildDetailRow('Estado', formattedInfo['status']),
                   _buildDetailRow('Chofer', formattedInfo['driverName']),
                   if (formattedInfo['nearestStation'] != null) ...[
-                    _buildDetailRow('Estación más cercana', formattedInfo['nearestStation']['name']),
+                    _buildDetailRow('Estación más cercana', 'Estación ${formattedInfo['nearestStation']['id']}'),
                     _buildDetailRow('Distancia', '${formattedInfo['nearestStation']['distance'].toStringAsFixed(0)}m'),
                   ],
                   if (formattedInfo['estimatedArrivalNext'] != null) ...[

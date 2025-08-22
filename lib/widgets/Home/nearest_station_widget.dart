@@ -364,7 +364,7 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      station['name'],
+                      'Estación ${station['id']}',
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: theme.colorScheme.primary,
@@ -384,7 +384,7 @@ class _NearestStationWidgetState extends State<NearestStationWidget> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      route['name'],
+                      route['name'] ?? 'Ruta sin nombre',
                       style: theme.textTheme.bodyMedium,
                     ),
                   ),

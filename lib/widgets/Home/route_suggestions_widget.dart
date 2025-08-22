@@ -155,11 +155,26 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   void initState() {
     super.initState();
     // No buscar automáticamente, esperar a que se confirme el destino
-    // if (widget.destinationLatitude != null && widget.destinationLongitude != null) {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     findRouteSuggestions();
-    //   });
-    // }
+  }
+
+  @override
+  void didUpdateWidget(RouteSuggestionsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Si las coordenadas del destino cambiaron y no estamos cargando, buscar automáticamente
+    if (widget.destinationLatitude != oldWidget.destinationLatitude ||
+        widget.destinationLongitude != oldWidget.destinationLongitude) {
+      
+      if (widget.destinationLatitude != null && 
+          widget.destinationLongitude != null && 
+          !isLoading) {
+        
+        print('🎯 Destination coordinates changed, automatically searching for routes');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          findRouteSuggestions();
+        });
+      }
+    }
   }
 
   @override
@@ -326,7 +341,7 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Presiona "Buscar Rutas" para encontrar las mejores opciones de transporte público.',
+                      'Buscando automáticamente las mejores rutas...',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

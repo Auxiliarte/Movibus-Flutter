@@ -255,7 +255,7 @@ class _StationListWithETAState extends State<StationListWithETA> {
           final estimatedTime = _getEstimatedTimeForStation(station);
 
           return StationETAWidget(
-            stationName: station['name'],
+            stationName: 'Estación ${station['id']}',
             estimatedTime: estimatedTime,
             isCurrentStation: isCurrentStation,
             isNextStation: isNextStation,
@@ -506,7 +506,7 @@ class _StationListWithETAState extends State<StationListWithETA> {
     // Aquí puedes agregar lógica para mostrar más detalles de la estación
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Estación: ${station['name']}'),
+        content: Text('Estación: ${station['id']}'),
         duration: const Duration(seconds: 2),
       ),
     );

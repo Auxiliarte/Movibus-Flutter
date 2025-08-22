@@ -182,33 +182,38 @@ class _HomeScreenState extends State<HomeScreen> {
       
       print('🎯 Navigation completed, result: $result');
 
-      if (result != null) {
-        // El usuario confirmó el destino
-        setState(() {
-          _toLatitude = result['latitude'] as double;
-          _toLongitude = result['longitude'] as double;
-          _toController.text = result['address'] as String;
-        });
-        
-        // Mostrar mensaje de confirmación
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Destino confirmado: ${result['address']}'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-      } else {
-        // El usuario canceló, revertir cambios
-        setState(() {
-          _toLatitude = null;
-          _toLongitude = null;
-          _toController.clear();
-          _isVisibleTrayectos = false;
-        });
+          if (result != null) {
+      // El usuario confirmó el destino
+      setState(() {
+        _toLatitude = result['latitude'] as double;
+        _toLongitude = result['longitude'] as double;
+        _toController.text = result['address'] as String;
+        _isVisibleTrayectos = true;
+      });
+      
+      // Mostrar mensaje de confirmación
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Destino confirmado: ${result['address']}'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
+      
+      // Automáticamente buscar las mejores rutas
+      print('🎯 Automatically searching for routes after destination confirmation');
+      
+    } else {
+      // El usuario canceló, revertir cambios
+      setState(() {
+        _toLatitude = null;
+        _toLongitude = null;
+        _toController.clear();
+        _isVisibleTrayectos = false;
+      });
+    }
     } catch (e) {
       print('❌ Error during navigation: $e');
       // En caso de error, simplemente confirmar el destino sin navegar

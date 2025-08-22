@@ -74,7 +74,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
         markerId: MarkerId('station_${station.id}'),
         position: LatLng(station.latitude, station.longitude),
         infoWindow: InfoWindow(
-          title: station.name,
+                        title: station.displayName,
           snippet: 'Estación ${station.order + 1}',
         ),
         icon: BitmapDescriptor.defaultMarkerWithHue(
@@ -378,7 +378,7 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
                                               ),
                                             ),
                                             title: Text(
-                                              station.name,
+                                              station.displayName,
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w500,

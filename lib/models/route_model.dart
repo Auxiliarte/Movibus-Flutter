@@ -55,14 +55,12 @@ class RouteBasicModel {
 // Modelo para estaciones de una ruta
 class StationModel {
   final int id;
-  final String name;
   final double latitude;
   final double longitude;
   final int order;
 
   StationModel({
     required this.id,
-    required this.name,
     required this.latitude,
     required this.longitude,
     required this.order,
@@ -72,7 +70,6 @@ class StationModel {
     try {
       return StationModel(
         id: json['id'] ?? 0,
-        name: json['name'] ?? 'Estación sin nombre',
         latitude: (json['latitude'] ?? 0.0).toDouble(),
         longitude: (json['longitude'] ?? 0.0).toDouble(),
         order: json['order'] ?? 0,
@@ -80,6 +77,11 @@ class StationModel {
     } catch (e) {
       rethrow;
     }
+  }
+
+  // Método para obtener el identificador de la estación
+  String get displayName {
+    return 'Estación $id';
   }
 }
 

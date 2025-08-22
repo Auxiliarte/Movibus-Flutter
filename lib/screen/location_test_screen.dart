@@ -184,7 +184,7 @@ class _LocationTestScreenState extends State<LocationTestScreen> {
     return Column(
       children: routes.map((route) {
         return ListTile(
-          title: Text(route['name']),
+                            title: Text(route['name'] ?? 'Ruta sin nombre'),
           subtitle: Text(route['description'] ?? 'Sin descripción'),
           trailing: Text('${route['total_stations']} paradas'),
           onTap: () => _loadTrackingInfo(route['id']),

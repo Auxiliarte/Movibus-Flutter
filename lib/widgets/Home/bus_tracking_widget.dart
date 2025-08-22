@@ -381,7 +381,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
               _buildInfoRow(
                 icon: Icons.place,
                 title: 'Estación más cercana',
-                subtitle: '${nearestStation['name']} (${nearestStation['distance'].toStringAsFixed(0)}m)',
+                                    subtitle: 'Estación ${nearestStation['id']} (${nearestStation['distance'].toStringAsFixed(0)}m)',
                 color: Colors.purple[700]!,
               ),
               const SizedBox(height: 12),
