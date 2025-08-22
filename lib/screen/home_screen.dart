@@ -11,8 +11,10 @@ import 'package:moventra/widgets/Home/route_suggestions_widget.dart';
 import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
 import '../models/coupon.dart';
 import '../models/favorite_location.dart';
+import '../models/route_suggestion_model.dart';
 import '../services/coupon_service.dart';
 import '../services/location_service.dart';
+import '../services/location_api_service.dart';
 import '../services/favorite_service.dart';
 import 'package:moventra/widgets/Home/place_autocomplete_field.dart';
 import 'add_favorite_screen.dart';
@@ -20,6 +22,7 @@ import 'package:moventra/widgets/Home/help_modal.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'destination_confirmation_screen.dart';
 import 'google_maps_test_screen.dart';
+import 'route_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -581,21 +584,108 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _onFavoriteTap(FavoriteLocation favorite) {
-    // Usar la ubicación favorita como origen o destino
+  void _onFavoriteTap(FavoriteLocation favorite) async {
+    // Mostrar indicador de carga
     setState(() {
-      if (_fromController.text.isEmpty) {
-        // Usar como origen
-        _fromController.text = favorite.address;
-        _fromLatitude = favorite.latitude;
-        _fromLongitude = favorite.longitude;
-      } else if (_toController.text.isEmpty) {
-        // Usar como destino
+      _isLoadingLocation = true;
+    });
+
+    try {
+      // Determinar si usar el favorito como origen o destino
+      bool useAsOrigin = _fromController.text.isEmpty ||
+                        (_fromController.text.isNotEmpty && _toController.text.isNotEmpty);
+
+      // Coordenadas del usuario (origen actual o ubicación actual)
+      double userLat, userLng;
+      String destinationAddress;
+
+      if (useAsOrigin) {
+        // Usar ubicación actual como origen
+        final currentPosition = await LocationService.getCurrentLocation();
+        if (currentPosition != null) {
+          userLat = currentPosition.latitude;
+          userLng = currentPosition.longitude;
+        } else {
+          // Coordenadas por defecto de San Luis Potosí
+          userLat = 22.1565;
+          userLng = -100.9855;
+        }
+
+        // El favorito será el destino
+        destinationAddress = favorite.address;
         _toController.text = favorite.address;
         _toLatitude = favorite.latitude;
         _toLongitude = favorite.longitude;
+
+      } else {
+        // El favorito será el origen
+        userLat = favorite.latitude;
+        userLng = favorite.longitude;
+        _fromController.text = favorite.address;
+        _fromLatitude = favorite.latitude;
+        _fromLongitude = favorite.longitude;
+
+        // Mantener el destino actual
+        destinationAddress = _toController.text;
       }
-    });
+
+      // Hacer la sugerencia de ruta
+      final result = await LocationApiService.suggestRoute(
+        userLatitude: userLat,
+        userLongitude: userLng,
+        destinationLatitude: _toLatitude!,
+        destinationLongitude: _toLongitude!,
+        maxWalkingDistance: 1000, // 1 km máximo caminando
+      );
+
+      if (result['status'] == 'success' && result['data'] != null) {
+        final data = result['data'];
+        if (data is List && data.isNotEmpty) {
+          // Tomar la primera sugerencia
+          final suggestion = RouteSuggestionModel.fromJson(data[0]);
+
+          if (mounted) {
+            // Navegar directamente a los detalles de la ruta
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => RouteDetailScreen(
+                  routeSuggestion: suggestion,
+                  destinationAddress: destinationAddress,
+                  userLatitude: userLat,
+                  userLongitude: userLng,
+                  destinationLatitude: _toLatitude!,
+                  destinationLongitude: _toLongitude!,
+                ),
+              ),
+            );
+          }
+        } else {
+          _showError('No se encontraron rutas para esta ubicación');
+        }
+      } else {
+        _showError('Error al buscar rutas. Intenta de nuevo.');
+      }
+
+    } catch (e) {
+      print('Error en _onFavoriteTap: $e');
+      _showError('Error al procesar la ubicación favorita');
+    } finally {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+    }
+  }
+
+  void _showError(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   void _showAddFavoriteModal() async {
