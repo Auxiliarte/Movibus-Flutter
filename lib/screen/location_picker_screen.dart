@@ -62,42 +62,55 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
 
   Future<void> _getAddressFromLocation(LatLng location) async {
     try {
-      // Por ahora, usar coordenadas como dirección
-      // En una implementación futura se puede integrar con un servicio de geocoding
       setState(() {
-        _selectedAddress = '${location.latitude.toStringAsFixed(6)}, ${location.longitude.toStringAsFixed(6)}';
+        _selectedAddress = 'Obteniendo dirección...';
       });
+
+      // Intentar obtener la dirección real usando el servicio de geocoding
+      final address = await LocationService.getAddressFromCoordinates(
+        location.latitude,
+        location.longitude,
+      );
+
+      if (address != null && address.isNotEmpty) {
+        setState(() {
+          _selectedAddress = address;
+        });
+      } else {
+        // Si no se puede obtener la dirección, mostrar una ubicación aproximada
+        setState(() {
+          _selectedAddress = 'Ubicación aproximada (${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)})';
+        });
+      }
     } catch (e) {
+      print('Error getting address: $e');
       setState(() {
-        _selectedAddress = 'Ubicación seleccionada';
+        _selectedAddress = 'Ubicación seleccionada (${location.latitude.toStringAsFixed(4)}, ${location.longitude.toStringAsFixed(4)})';
       });
     }
   }
 
-  void _onMapTap(LatLng location) {
-    setState(() {
-      _selectedLocation = location;
-    });
-    _getAddressFromLocation(location);
-  }
 
   void _onCameraMove(CameraPosition position) {
-    // Opcional: actualizar ubicación mientras se mueve la cámara
-  }
-
-  void _onCameraIdle() {
+    // Actualizar ubicación en tiempo real mientras se mueve la cámara
     if (_mapController != null) {
       _mapController!.getLatLng(ScreenCoordinate(
-        x: 0,
-        y: 0,
+        x: (MediaQuery.of(context).size.width / 2).round(), // Centro horizontal
+        y: (MediaQuery.of(context).size.height / 2).round(), // Centro vertical
       )).then((center) {
         if (center != null && mounted) {
           setState(() {
             _selectedLocation = center;
           });
-          _getAddressFromLocation(center);
         }
       });
+    }
+  }
+
+  void _onCameraIdle() {
+    // Actualizar la dirección cuando la cámara se detiene
+    if (_selectedLocation != null) {
+      _getAddressFromLocation(_selectedLocation!);
     }
   }
 
@@ -175,25 +188,46 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                 target: _selectedLocation!,
                 zoom: 15,
               ),
-              onTap: _onMapTap,
+              onTap: (LatLng location) {
+                // Tap deshabilitado, ahora usamos puntero fijo
+              },
               onCameraMove: _onCameraMove,
               onCameraIdle: _onCameraIdle,
-              markers: _selectedLocation != null
-                  ? {
-                      Marker(
-                        markerId: const MarkerId('selected_location'),
-                        position: _selectedLocation!,
-                        infoWindow: InfoWindow(
-                          title: 'Ubicación seleccionada',
-                          snippet: _selectedAddress ?? 'Toca para seleccionar',
-                        ),
-                      ),
-                    }
-                  : {},
+              markers: {}, // Sin marcadores, usamos puntero fijo
               myLocationEnabled: true,
               myLocationButtonEnabled: false,
               zoomControlsEnabled: false,
               mapToolbarEnabled: false,
+            ),
+
+          // Puntero fijo en el centro del mapa
+          if (_selectedLocation != null && !_isLoading)
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 48,
+                    color: Colors.red,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    width: 4,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
           // Indicador de carga
@@ -237,7 +271,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'Ubicación seleccionada',
+                            'Ubicación del puntero',
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -247,14 +281,17 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      _selectedAddress ?? 'Toca el mapa para seleccionar',
-                      style: theme.textTheme.bodyMedium,
+                      _selectedAddress ?? 'Mueve el mapa para seleccionar ubicación',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Lat: ${_selectedLocation!.latitude.toStringAsFixed(6)}, Lng: ${_selectedLocation!.longitude.toStringAsFixed(6)}',
+                      'Mueve el mapa para elegir tu ubicación exacta',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
                       ),
                     ),
                   ],
