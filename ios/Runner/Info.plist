@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -24,14 +26,20 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Moventra necesita acceso a tu ubicación para encontrar la estación de autobús más cercana y sugerir las mejores rutas para llegar a tu destino.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Moventra necesita acceso a la cámara para tomar fotos de perfil.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Moventra necesita acceso a tu ubicación para encontrar la estación de autobús más cercana y sugerir las mejores rutas para llegar a tu destino.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Moventra necesita acceso a tu ubicación en todo momento para proporcionar actualizaciones de ubicación en tiempo real, seguimiento de rutas y notificaciones de llegada a tu destino.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Moventra necesita acceso a la galería para seleccionar fotos de perfil.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -49,7 +57,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
 </dict>
 </plist>
