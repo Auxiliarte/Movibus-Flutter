@@ -29,10 +29,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
           label: 'Rutas',
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.settings_outlined),
-          label: 'Configuración',
-        ),
-        BottomNavigationBarItem(
           icon: Icon(Icons.person_outlined),
           label: 'Usuario',
         ),

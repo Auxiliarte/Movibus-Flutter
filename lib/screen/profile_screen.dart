@@ -15,7 +15,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   bool notificationsEnabled = false;
-  int _currentIndex = 3;
+  int _currentIndex = 2;
   final AuthService _authService = AuthService();
 
   void _onItemTapped(int index) {
@@ -28,9 +28,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.pushNamed(context, '/routesHistory');
         break;
       case 2:
-        Navigator.pushNamed(context, '/settings');
-        break;
-      case 3:
         Navigator.pushNamed(context, '/profile');
         break;
     }

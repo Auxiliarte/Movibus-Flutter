@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
+// import 'package:url_launcher/url_launcher.dart'; // Para futuro uso
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,10 +12,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final Map<String, bool> expandStates = {
     'informacion': false,
-    'contrasena': false,
     'correo': false,
-    'mas': true,
-    'soporte': false,
     'terminos': false,
   };
 
@@ -35,9 +33,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void toggle(String key) {
-    setState(() {
-      expandStates[key] = !(expandStates[key] ?? false);
-    });
+    switch (key) {
+      case 'informacion':
+        Navigator.pushNamed(context, '/EditProfilePersonal');
+        break;
+      case 'correo':
+        Navigator.pushNamed(context, '/EditProfileMail');
+        break;
+      case 'terminos':
+        // Abrir términos y condiciones en navegador
+        _launchTermsAndConditions();
+        break;
+      default:
+        setState(() {
+          expandStates[key] = !(expandStates[key] ?? false);
+        });
+    }
+  }
+
+  void _launchTermsAndConditions() async {
+    const url = 'https://app.moventra.com.mx/terminos-condiciones';
+    try {
+      // Para Flutter web o plataformas que soporten url_launcher
+      // await launchUrl(Uri.parse(url));
+      // Por ahora, mostramos un mensaje
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Abriendo: $url'),
+          action: SnackBarAction(
+            label: 'OK',
+            onPressed: () {},
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error al abrir URL: $e');
+    }
   }
 
   Widget buildOption(
@@ -47,40 +78,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     bool removeIcon = false,
     double fontSize = 18,
   }) {
-    final isExpanded = expandStates[key] ?? false;
     final textColor = theme.textTheme.bodyMedium?.color;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          title: Text(
-            title,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: fontSize,
-              fontWeight: isExpanded ? FontWeight.w600 : FontWeight.w500,
-            ),
-          ),
-          trailing:
-              removeIcon
-                  ? null
-                  : Icon(
-                    isExpanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_right,
-                    color: textColor,
-                  ),
-          onTap: () => toggle(key),
+    return ListTile(
+      title: Text(
+        title,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w500,
         ),
-        if (isExpanded)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-            child: Text(
-              'Contenido desplegado...',
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-            ),
-          ),
-      ],
+      ),
+      trailing:
+          removeIcon
+              ? null
+              : Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: textColor,
+              ),
+      onTap: () => toggle(key),
     );
   }
 
@@ -117,53 +133,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
 
-            // Suscripción Premium
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 15,
-              ), // Margen lateral
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Suscripción Premium',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Actualiza para obtener más opciones',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Image.asset(
-                      'assets/king.png',
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -184,23 +154,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               theme,
               fontSize: 17,
             ),
-            buildOption("Contraseña", "contrasena", theme, fontSize: 17),
             buildOption("Correo", "correo", theme, fontSize: 17),
-
-            Column(
-              children: [
-                buildOption("Más", "mas", theme, removeIcon: true),
-                if (expandStates['mas'] ?? false) ...[
-                  const SizedBox(height: 8),
-                  buildOption("Soporte", "soporte", theme, fontSize: 17),
-                  buildOption(
-                    "Términos y condiciones",
-                    "terminos",
-                    theme,
-                    fontSize: 16,
-                  ),
-                ],
-              ],
+            buildOption(
+              "Términos y condiciones",
+              "terminos",
+              theme,
+              fontSize: 16,
             ),
 
             const SizedBox(height: 32),
@@ -211,7 +170,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Navigator.pushNamed(context, '/Welcome');
                 },
                 child: Text(
-                  'Finalizar sesión',
+                  'Cerrar sesión',
                   style: TextStyle(
                     color: theme.colorScheme.error,
                     fontWeight: FontWeight.bold,

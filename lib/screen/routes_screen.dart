@@ -36,9 +36,6 @@ class _RoutesScreenState extends State<RoutesScreen> {
         Navigator.pushNamed(context, '/routesHistory');
         break;
       case 2:
-        Navigator.pushNamed(context, '/settings');
-        break;
-      case 3:
         Navigator.pushNamed(context, '/profile');
         break;
     }
