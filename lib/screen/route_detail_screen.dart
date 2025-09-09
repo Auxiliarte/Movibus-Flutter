@@ -351,7 +351,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               tabs: const [
                 Tab(text: 'Instrucciones'),
                 Tab(text: 'Mapa'),
-                Tab(text: 'Tracking'),
                 Tab(text: 'Detalles'),
               ],
             ),
@@ -364,7 +363,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                           children: [
               _buildInstructionsTab(),
               _buildMapTab(),
-              _buildTrackingTab(),
               _buildDetailsTab(),
             ],
             ),
