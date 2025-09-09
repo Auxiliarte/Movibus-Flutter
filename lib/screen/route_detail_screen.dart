@@ -7,6 +7,8 @@ import '../themes/app_colors.dart';
 import '../services/driver_tracking_service.dart';
 import '../widgets/Home/bus_tracking_widget.dart';
 import '../widgets/Home/station_eta_widget.dart';
+import '../widgets/full_screen_map_modal.dart';
+import 'navigation_screen.dart';
 
 class RouteDetailScreen extends StatefulWidget {
   final RouteSuggestionModel routeSuggestion;
@@ -39,6 +41,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   Timer? _trackingTimer;
   Map<String, dynamic>? _currentTrackingInfo;
   LatLng? _lastDriverLocation;
+  final StreamController<Set<Marker>> _markersStreamController = StreamController<Set<Marker>>.broadcast();
   DateTime? _lastLocationUpdate;
   int _consecutiveSameLocationCount = 0;
   bool _hasApiError = false;
@@ -56,6 +59,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     _tabController.dispose();
     _mapController?.dispose();
     _trackingTimer?.cancel();
+    _markersStreamController.close();
     super.dispose();
   }
 
@@ -559,40 +563,285 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         // Widget de estado del conductor
         _buildDriverStatusWidget(),
         Expanded(
-          child: Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: LatLng(
-                        (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
-                        (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
+          child: Column(
+            children: [
+              // Mapa interactivo
+              Container(
+                height: 300,
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: GoogleMap(
+                        initialCameraPosition: CameraPosition(
+                          target: LatLng(
+                            (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
+                            (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
+                          ),
+                          zoom: 12,
+                        ),
+                        markers: _markers,
+                        polylines: _polylines,
+                        onMapCreated: (GoogleMapController controller) {
+                          _mapController = controller;
+                          _fitBounds();
+                        },
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: true,
+                        zoomControlsEnabled: true,
+                        scrollGesturesEnabled: true,
+                        zoomGesturesEnabled: true,
+                        tiltGesturesEnabled: true,
+                        rotateGesturesEnabled: true,
                       ),
-                      zoom: 12,
-                    ),
-                    markers: _markers,
-                    polylines: _polylines,
-                    onMapCreated: (GoogleMapController controller) {
-                      _mapController = controller;
-                      _fitBounds();
-                    },
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    zoomControlsEnabled: false,
-                  ),
-            ),
+                ),
+              ),
+              
+              // Sección de instrucciones y botón empezar
+              Expanded(
+                child: _buildMapInstructions(),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
+  Widget _buildMapInstructions() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Título de instrucciones
+          Text(
+            'Instrucciones de la ruta',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          
+          // Lista de instrucciones
+          Expanded(
+            child: ListView(
+              children: _buildRouteInstructions(),
+            ),
+          ),
+          
+          // Botón empezar
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: ElevatedButton.icon(
+              onPressed: () => _startNavigation(),
+              icon: const Icon(Icons.navigation, color: Colors.white),
+              label: const Text(
+                'Empezar navegación',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.lightPrimaryButton,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  List<Widget> _buildRouteInstructions() {
+    List<Widget> instructions = [];
+    
+    // Instrucción inicial: caminar al punto de partida
+    instructions.add(_buildInstructionStep(
+      icon: Icons.directions_walk,
+      iconColor: Colors.green,
+      title: 'Caminar hasta la parada',
+      subtitle: 'Ve hasta ${widget.routeSuggestion.subirEn.estacion}',
+      distance: widget.routeSuggestion.subirEn.distanciaCaminando,
+      time: widget.routeSuggestion.subirEn.tiempoCaminando,
+      isCompleted: false,
+    ));
+    
+    if (widget.routeSuggestion.tipo == 'transbordo') {
+      // Ruta con transbordo
+      instructions.add(_buildInstructionStep(
+        icon: Icons.directions_bus,
+        iconColor: Colors.blue,
+        title: 'Tomar ${widget.routeSuggestion.primeraRuta}',
+        subtitle: 'Dirección: ${widget.routeSuggestion.trayectos?.primeraRuta.direccion ?? "ida"}',
+        distance: null,
+        time: null,
+        isCompleted: false,
+      ));
+      
+      if (widget.routeSuggestion.transbordo != null) {
+        instructions.add(_buildInstructionStep(
+          icon: Icons.transfer_within_a_station,
+          iconColor: Colors.orange,
+          title: 'Transbordo',
+          subtitle: 'De ${widget.routeSuggestion.transbordo!.estacionOrigen} a ${widget.routeSuggestion.transbordo!.estacionDestino}',
+          distance: widget.routeSuggestion.transbordo!.distanciaCaminando,
+          time: widget.routeSuggestion.transbordo!.tiempoCaminando,
+          isCompleted: false,
+        ));
+      }
+      
+      instructions.add(_buildInstructionStep(
+        icon: Icons.directions_bus,
+        iconColor: Colors.blue,
+        title: 'Tomar ${widget.routeSuggestion.segundaRuta}',
+        subtitle: 'Dirección: ${widget.routeSuggestion.trayectos?.segundaRuta.direccion ?? "ida"}',
+        distance: null,
+        time: null,
+        isCompleted: false,
+      ));
+    } else {
+      // Ruta directa
+      instructions.add(_buildInstructionStep(
+        icon: Icons.directions_bus,
+        iconColor: Colors.blue,
+        title: 'Tomar ${widget.routeSuggestion.ruta}',
+        subtitle: 'Dirección: ${widget.routeSuggestion.direction}',
+        distance: null,
+        time: widget.routeSuggestion.tiempoEnCamion,
+        isCompleted: false,
+      ));
+    }
+    
+    // Instrucción final: caminar al destino
+    instructions.add(_buildInstructionStep(
+      icon: Icons.directions_walk,
+      iconColor: Colors.green,
+      title: 'Caminar hasta el destino',
+      subtitle: 'Desde ${widget.routeSuggestion.bajarseEn.estacion}',
+      distance: widget.routeSuggestion.bajarseEn.distanciaCaminando,
+      time: widget.routeSuggestion.bajarseEn.tiempoCaminando,
+      isCompleted: false,
+    ));
+    
+    return instructions;
+  }
+
+  Widget _buildInstructionStep({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    String? distance,
+    String? time,
+    required bool isCompleted,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isCompleted ? Colors.green.shade50 : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isCompleted ? Colors.green.shade200 : Colors.grey.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          // Icono
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: 24,
+            ),
+          ),
+          
+          const SizedBox(width: 12),
+          
+          // Contenido
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: isCompleted ? Colors.green.shade700 : null,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                if (distance != null || time != null) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      if (distance != null) ...[
+                        Icon(Icons.straighten, size: 12, color: Colors.grey.shade500),
+                        const SizedBox(width: 4),
+                        Text(
+                          distance,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                      if (distance != null && time != null) ...[
+                        const SizedBox(width: 8),
+                        Text('•', style: TextStyle(color: Colors.grey.shade400)),
+                        const SizedBox(width: 8),
+                      ],
+                      if (time != null) ...[
+                        Icon(Icons.access_time, size: 12, color: Colors.grey.shade500),
+                        const SizedBox(width: 4),
+                        Text(
+                          time,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          
+          // Estado
+          if (isCompleted)
+            Icon(
+              Icons.check_circle,
+              color: Colors.green.shade600,
+              size: 20,
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildLegendDot(Color color, {bool isDashed = false}) {
     return Container(
@@ -1183,6 +1432,11 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     setState(() {
       // Esto forzará la actualización del mapa
     });
+    
+    // Enviar actualización al stream para el modal
+    if (!_markersStreamController.isClosed) {
+      _markersStreamController.add(Set<Marker>.from(_markers));
+    }
   }
 
   Widget _buildDriverStatusWidget() {
@@ -1315,4 +1569,23 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       return 'N/A';
     }
   }
+
+  void _startNavigation() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NavigationScreen(
+          routeSuggestion: widget.routeSuggestion,
+          destinationAddress: widget.destinationAddress,
+          userLatitude: widget.userLatitude,
+          userLongitude: widget.userLongitude,
+          destinationLatitude: widget.destinationLatitude,
+          destinationLongitude: widget.destinationLongitude,
+          initialMarkers: _markers,
+          initialPolylines: _polylines,
+        ),
+      ),
+    );
+  }
+
 } 
