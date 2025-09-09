@@ -362,7 +362,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               unselectedLabelColor: Colors.grey,
               indicatorColor: AppColors.lightPrimaryButton,
               tabs: const [
-                Tab(text: 'Instrucciones'),
                 Tab(text: 'Mapa'),
                 Tab(text: 'Detalles'),
               ],
@@ -374,7 +373,6 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             child: TabBarView(
               controller: _tabController,
                           children: [
-              _buildInstructionsTab(),
               _buildMapTab(),
               _buildDetailsTab(),
             ],
@@ -563,59 +561,60 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         // Widget de estado del conductor
         _buildDriverStatusWidget(),
         Expanded(
-          child: Column(
-            children: [
-              // Mapa interactivo
-              Container(
-                height: 300,
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: LatLng(
-                            (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
-                            (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Mapa interactivo
+                Container(
+                  height: 300,
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(
+                              (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
+                              (widget.userLongitude + widget.routeSuggestion.departureStation.longitude + widget.routeSuggestion.arrivalStation.longitude + widget.destinationLongitude) / 4,
+                            ),
+                            zoom: 12,
                           ),
-                          zoom: 12,
+                          markers: _markers,
+                          polylines: _polylines,
+                          onMapCreated: (GoogleMapController controller) {
+                            _mapController = controller;
+                            _fitBounds();
+                          },
+                          myLocationEnabled: true,
+                          myLocationButtonEnabled: true,
+                          zoomControlsEnabled: true,
+                          scrollGesturesEnabled: true,
+                          zoomGesturesEnabled: true,
+                          tiltGesturesEnabled: true,
+                          rotateGesturesEnabled: true,
                         ),
-                        markers: _markers,
-                        polylines: _polylines,
-                        onMapCreated: (GoogleMapController controller) {
-                          _mapController = controller;
-                          _fitBounds();
-                        },
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true,
-                        zoomControlsEnabled: true,
-                        scrollGesturesEnabled: true,
-                        zoomGesturesEnabled: true,
-                        tiltGesturesEnabled: true,
-                        rotateGesturesEnabled: true,
-                      ),
+                  ),
                 ),
-              ),
-              
-              // Sección de instrucciones y botón empezar
-              Expanded(
-                child: _buildMapInstructions(),
-              ),
-            ],
+                
+                // Sección de instrucciones y botón empezar
+                _buildMapInstructionsScrollable(),
+              ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildMapInstructions() {
+  Widget _buildMapInstructionsScrollable() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Título de instrucciones
           Text(
@@ -626,12 +625,12 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           ),
           const SizedBox(height: 12),
           
-          // Lista de instrucciones
-          Expanded(
-            child: ListView(
-              children: _buildRouteInstructions(),
-            ),
+          // Lista de instrucciones (sin Expanded)
+          Column(
+            children: _buildRouteInstructions(),
           ),
+          
+          const SizedBox(height: 16),
           
           // Botón empezar
           Container(
@@ -658,6 +657,9 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               ),
             ),
           ),
+          
+          // Padding inferior para mejor visualización
+          const SizedBox(height: 20),
         ],
       ),
     );

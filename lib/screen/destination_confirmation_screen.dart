@@ -304,6 +304,8 @@ class _DestinationConfirmationScreenState extends State<DestinationConfirmationS
                   child: OutlinedButton(
                     onPressed: _cancelSelection,
                     style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
