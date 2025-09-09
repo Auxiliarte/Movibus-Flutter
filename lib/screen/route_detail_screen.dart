@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -35,18 +36,26 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
   Set<Polyline> _polylines = {};
+  Timer? _trackingTimer;
+  Map<String, dynamic>? _currentTrackingInfo;
+  LatLng? _lastDriverLocation;
+  DateTime? _lastLocationUpdate;
+  int _consecutiveSameLocationCount = 0;
+  bool _hasApiError = false;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _initializeMap();
+    _startTrackingUpdates();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _mapController?.dispose();
+    _trackingTimer?.cancel();
     super.dispose();
   }
 
@@ -547,6 +556,8 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             ],
           ),
         ),
+        // Widget de estado del conductor
+        _buildDriverStatusWidget(),
         Expanded(
           child: Container(
             margin: const EdgeInsets.all(16),
@@ -556,36 +567,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: FutureBuilder<Map<String, dynamic>>(
-                future: DriverTrackingService.getDriverTrackingByRoute(widget.routeSuggestion.routeId),
-                builder: (context, snapshot) {
-                  Set<Marker> markers = Set.from(_markers);
-                  
-                  // Agregar marcador del autobús si hay tracking disponible
-                  if (snapshot.hasData) {
-                    final trackingData = snapshot.data!;
-                    final formattedInfo = DriverTrackingService.formatTrackingInfo(trackingData);
-                    
-                    if (formattedInfo['hasActiveDriver'] && formattedInfo['currentLocation'] != null) {
-                      final currentLocation = formattedInfo['currentLocation'];
-                      markers.add(
-                        Marker(
-                          markerId: const MarkerId('bus_location'),
-                          position: LatLng(
-                            currentLocation['latitude'],
-                            currentLocation['longitude'],
-                          ),
-                          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-                          infoWindow: InfoWindow(
-                            title: 'Autobús en ruta',
-                            snippet: 'Chofer: ${formattedInfo['driverName']}',
-                          ),
-                        ),
-                      );
-                    }
-                  }
-                  
-                  return GoogleMap(
+              child: GoogleMap(
                     initialCameraPosition: CameraPosition(
                       target: LatLng(
                         (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
@@ -593,7 +575,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                       ),
                       zoom: 12,
                     ),
-                    markers: markers,
+                    markers: _markers,
                     polylines: _polylines,
                     onMapCreated: (GoogleMapController controller) {
                       _mapController = controller;
@@ -602,9 +584,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                     myLocationEnabled: true,
                     myLocationButtonEnabled: true,
                     zoomControlsEnabled: false,
-                  );
-                },
-              ),
+                  ),
             ),
           ),
         ),
@@ -612,93 +592,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     );
   }
 
-  Widget _buildTrackingTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Widget de tracking del autobús
-          BusTrackingWidget(
-            routeId: widget.routeSuggestion.routeId,
-            routeName: widget.routeSuggestion.routeName,
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // Lista de estaciones con tiempos estimados
-          FutureBuilder<Map<String, dynamic>>(
-            future: DriverTrackingService.getDriverTrackingByRoute(widget.routeSuggestion.routeId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return StationListWithETA(
-                  stations: _getAllStations(),
-                  isLoading: true,
-                );
-              }
-              
-              if (snapshot.hasError) {
-                return StationListWithETA(
-                  stations: _getAllStations(),
-                  trackingInfo: null,
-                  isLoading: false,
-                );
-              }
-              
-              final trackingData = snapshot.data;
-              final formattedInfo = trackingData != null 
-                  ? DriverTrackingService.formatTrackingInfo(trackingData)
-                  : null;
-              
-              return StationListWithETA(
-                stations: _getAllStations(),
-                trackingInfo: formattedInfo,
-                isLoading: false,
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
-  List<Map<String, dynamic>> _getAllStations() {
-    final stations = <Map<String, dynamic>>[];
-    
-    // Agregar estación de partida
-    stations.add({
-      'id': widget.routeSuggestion.departureStation.id,
-              'name': widget.routeSuggestion.departureStation.displayName,
-      'latitude': widget.routeSuggestion.departureStation.latitude,
-      'longitude': widget.routeSuggestion.departureStation.longitude,
-      'order': widget.routeSuggestion.departureStation.order,
-    });
-    
-    // Agregar estaciones intermedias
-    for (final station in widget.routeSuggestion.intermediateStations) {
-      stations.add({
-        'id': station.id,
-        'name': station.displayName,
-        'latitude': station.latitude,
-        'longitude': station.longitude,
-        'order': station.order,
-      });
-    }
-    
-    // Agregar estación de llegada
-    stations.add({
-      'id': widget.routeSuggestion.arrivalStation.id,
-              'name': widget.routeSuggestion.arrivalStation.displayName,
-      'latitude': widget.routeSuggestion.arrivalStation.latitude,
-      'longitude': widget.routeSuggestion.arrivalStation.longitude,
-      'order': widget.routeSuggestion.arrivalStation.order,
-    });
-    
-    // Ordenar por orden
-    stations.sort((a, b) => a['order'].compareTo(b['order']));
-    
-    return stations;
-  }
 
   Widget _buildLegendDot(Color color, {bool isDashed = false}) {
     return Container(
@@ -1119,6 +1013,267 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         50, // padding adicional
       ),
     );
+  }
+
+  void _startTrackingUpdates() {
+    // Actualizar inmediatamente
+    _updateTrackingInfo();
+    
+    // Configurar actualización periódica cada 5 segundos
+    _trackingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted) {
+        _updateTrackingInfo();
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  Future<void> _updateTrackingInfo() async {
+    try {
+      final trackingData = await DriverTrackingService.getDriverTrackingByRoute(widget.routeSuggestion.routeId);
+      
+      if (mounted) {
+        setState(() {
+          _hasApiError = false;
+          _currentTrackingInfo = trackingData;
+        });
+        _processDriverLocation(trackingData);
+      }
+    } catch (e) {
+      print('❌ Error actualizando tracking: $e');
+      if (mounted) {
+        setState(() {
+          _hasApiError = true;
+        });
+      }
+    }
+  }
+
+  void _processDriverLocation(Map<String, dynamic> trackingData) {
+    print('🔍 _processDriverLocation called');
+    print('🔍 trackingData: $trackingData');
+    
+    final activeDriver = trackingData['active_driver'];
+    print('🔍 activeDriver from trackingData: $activeDriver');
+    
+    final hasActiveDriver = trackingData['has_active_driver'];
+    print('🔍 has_active_driver from trackingData: $hasActiveDriver');
+    
+    if (activeDriver == null || hasActiveDriver != true) {
+      print('❌ No active driver in trackingData');
+      return;
+    }
+
+    final currentLocation = activeDriver['current_location'];
+    if (currentLocation == null) return;
+
+    final newLocation = LatLng(
+      currentLocation['latitude'],
+      currentLocation['longitude'],
+    );
+
+    // Verificar si la ubicación ha cambiado
+    bool locationChanged = false;
+    if (_lastDriverLocation == null) {
+      locationChanged = true;
+    } else {
+      // Calcular distancia entre ubicaciones (en metros)
+      final distance = _calculateDistance(_lastDriverLocation!, newLocation);
+      locationChanged = distance > 5.0; // Cambio si se movió más de 5 metros
+    }
+
+    if (locationChanged) {
+      _consecutiveSameLocationCount = 0;
+      _lastLocationUpdate = DateTime.now();
+    } else {
+      _consecutiveSameLocationCount++;
+    }
+
+    _lastDriverLocation = newLocation;
+    _updateMapMarkers();
+  }
+
+  double _calculateDistance(LatLng point1, LatLng point2) {
+    const double earthRadius = 6371000; // Radio de la Tierra en metros
+    final double lat1Rad = point1.latitude * (pi / 180);
+    final double lat2Rad = point2.latitude * (pi / 180);
+    final double deltaLatRad = (point2.latitude - point1.latitude) * (pi / 180);
+    final double deltaLngRad = (point2.longitude - point1.longitude) * (pi / 180);
+
+    final double a = sin(deltaLatRad / 2) * sin(deltaLatRad / 2) +
+        cos(lat1Rad) * cos(lat2Rad) *
+        sin(deltaLngRad / 2) * sin(deltaLngRad / 2);
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  void _updateMapMarkers() {
+    print('🔍 _updateMapMarkers called');
+    print('🔍 _currentTrackingInfo: $_currentTrackingInfo');
+    
+    if (_currentTrackingInfo == null) {
+      print('❌ _currentTrackingInfo is null');
+      return;
+    }
+    
+    final hasActiveDriver = _currentTrackingInfo!['has_active_driver'];
+    print('🔍 has_active_driver: $hasActiveDriver');
+    
+    if (hasActiveDriver != true) {
+      print('❌ No active driver');
+      return;
+    }
+
+    final activeDriver = _currentTrackingInfo!['active_driver'];
+    print('🔍 activeDriver: $activeDriver');
+    
+    if (activeDriver == null) {
+      print('❌ activeDriver is null');
+      return;
+    }
+
+    final currentLocation = activeDriver['current_location'];
+    print('🔍 currentLocation: $currentLocation');
+    
+    if (currentLocation == null) {
+      print('❌ currentLocation is null');
+      return;
+    }
+
+    // Remover marcador anterior del autobús si existe
+    _markers.removeWhere((marker) => marker.markerId.value == 'bus_location');
+    
+    // Determinar el color del marcador basado en el estado
+    BitmapDescriptor markerIcon;
+    String statusMessage = '';
+    
+    if (_hasApiError) {
+      markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange);
+      statusMessage = 'Sin conexión - Posible batería agotada';
+    } else if (_consecutiveSameLocationCount >= 6) { // 30 segundos sin movimiento
+      markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow);
+      statusMessage = 'Conductor estacionado';
+    } else {
+      markerIcon = BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed);
+      statusMessage = 'En movimiento';
+    }
+    
+    // Agregar nuevo marcador del autobús
+    final newMarker = Marker(
+      markerId: const MarkerId('bus_location'),
+      position: LatLng(
+        currentLocation['latitude'],
+        currentLocation['longitude'],
+      ),
+      icon: markerIcon,
+      infoWindow: InfoWindow(
+        title: 'Autobús en ruta',
+        snippet: '${activeDriver['driver_name']}\n$statusMessage',
+      ),
+    );
+    
+    _markers.add(newMarker);
+    print('✅ Marcador agregado: ${newMarker.position}');
+    print('✅ Total marcadores: ${_markers.length}');
+
+    // Actualizar el mapa si está disponible
+    print('✅ Actualizando mapa con setState');
+    setState(() {
+      // Esto forzará la actualización del mapa
+    });
+  }
+
+  Widget _buildDriverStatusWidget() {
+    if (_currentTrackingInfo == null || _currentTrackingInfo!['has_active_driver'] != true) {
+      return const SizedBox.shrink();
+    }
+
+    final activeDriver = _currentTrackingInfo!['active_driver'];
+    if (activeDriver == null) return const SizedBox.shrink();
+
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+    String statusSubtext = '';
+
+    if (_hasApiError) {
+      statusColor = Colors.orange;
+      statusIcon = Icons.warning_amber_rounded;
+      statusText = 'Sin conexión con el conductor';
+      statusSubtext = 'Posible batería agotada o sin señal';
+    } else if (_consecutiveSameLocationCount >= 6) {
+      statusColor = Colors.amber;
+      statusIcon = Icons.pause_circle_outline;
+      statusText = 'Conductor estacionado';
+      statusSubtext = 'El conductor no se ha movido en los últimos ${_consecutiveSameLocationCount * 5} segundos';
+    } else {
+      statusColor = Colors.green;
+      statusIcon = Icons.directions_bus;
+      statusText = 'Conductor en movimiento';
+      statusSubtext = 'Ubicación actualizada hace ${_getTimeSinceLastUpdate()}';
+    }
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: statusColor.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            statusIcon,
+            color: statusColor,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  statusText,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                if (statusSubtext.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    statusSubtext,
+                    style: TextStyle(
+                      color: statusColor.withOpacity(0.8),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getTimeSinceLastUpdate() {
+    if (_lastLocationUpdate == null) return '0 segundos';
+    
+    final now = DateTime.now();
+    final difference = now.difference(_lastLocationUpdate!);
+    
+    if (difference.inSeconds < 60) {
+      return '${difference.inSeconds} segundos';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} minutos';
+    } else {
+      return '${difference.inHours} horas';
+    }
   }
 
   String _formatEstimatedTime(String estimatedArrival) {
