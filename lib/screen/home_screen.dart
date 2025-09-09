@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   bool _isVisibleTrayectos = false;
+  bool _autoSearchRoutes = false;
   
   // Coordenadas para las rutas sugeridas
   double? _fromLatitude;
@@ -301,6 +302,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _toLongitude = result['longitude'] as double;
         _toController.text = result['address'] as String;
         _isVisibleTrayectos = true;
+        // Activar búsqueda automática si viene el flag
+        _autoSearchRoutes = result['autoSearch'] == true;
       });
       
       // Mostrar mensaje de confirmación
@@ -314,8 +317,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
       
-      // Automáticamente buscar las mejores rutas
-      print('🎯 Automatically searching for routes after destination confirmation');
+      // Log para debugging
+      if (_autoSearchRoutes) {
+        print('🎯 Auto-search activated - routes will be searched automatically');
+      }
       
     } else {
       // El usuario canceló, revertir cambios
@@ -324,6 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _toLongitude = null;
         _toController.clear();
         _isVisibleTrayectos = false;
+        _autoSearchRoutes = false;
       });
     }
     } catch (e) {
@@ -457,6 +463,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 destinationLongitude: _toLongitude,
                 userLatitude: _fromLatitude,
                 userLongitude: _fromLongitude,
+                autoSearch: _autoSearchRoutes,
+                onAutoSearchCompleted: () {
+                  // Resetear el flag después de completar la búsqueda automática
+                  setState(() {
+                    _autoSearchRoutes = false;
+                  });
+                  print('🎯 Auto-search completed and flag reset');
+                },
               ),
 
             // Contenido cuando no hay trayectos seleccionados

@@ -68,6 +68,7 @@ class _DestinationConfirmationScreenState extends State<DestinationConfirmationS
       'latitude': _destinationLat,
       'longitude': _destinationLng,
       'address': _destinationAddress ?? 'Ubicación seleccionada',
+      'autoSearch': true, // Indicar que se debe buscar rutas automáticamente
     });
   }
 

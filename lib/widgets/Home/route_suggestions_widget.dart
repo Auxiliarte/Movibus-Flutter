@@ -11,6 +11,8 @@ class RouteSuggestionsWidget extends StatefulWidget {
   final double? destinationLongitude;
   final double? userLatitude;
   final double? userLongitude;
+  final bool autoSearch;
+  final VoidCallback? onAutoSearchCompleted;
 
   const RouteSuggestionsWidget({
     super.key,
@@ -19,6 +21,8 @@ class RouteSuggestionsWidget extends StatefulWidget {
     this.destinationLongitude,
     this.userLatitude,
     this.userLongitude,
+    this.autoSearch = false,
+    this.onAutoSearchCompleted,
   });
 
   @override
@@ -210,19 +214,34 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
   void didUpdateWidget(RouteSuggestionsWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Si las coordenadas del destino cambiaron y no estamos cargando, buscar automáticamente
+    // Si las coordenadas del destino cambiaron o se activó autoSearch, buscar automáticamente
+    bool shouldAutoSearch = false;
+    
     if (widget.destinationLatitude != oldWidget.destinationLatitude ||
         widget.destinationLongitude != oldWidget.destinationLongitude) {
+      shouldAutoSearch = true;
+      print('🎯 Destination coordinates changed');
+    }
+    
+    if (widget.autoSearch && !oldWidget.autoSearch) {
+      shouldAutoSearch = true;
+      print('🎯 AutoSearch flag activated');
+    }
 
-      if (widget.destinationLatitude != null &&
-          widget.destinationLongitude != null &&
-          !isLoading) {
+    if (shouldAutoSearch &&
+        widget.destinationLatitude != null &&
+        widget.destinationLongitude != null &&
+        !isLoading) {
 
-        print('🎯 Destination coordinates changed, automatically searching for routes');
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          findRouteSuggestions();
+      print('🎯 Automatically searching for routes');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        findRouteSuggestions().then((_) {
+          // Notificar que la búsqueda automática se completó
+          if (widget.onAutoSearchCompleted != null) {
+            widget.onAutoSearchCompleted!();
+          }
         });
-      }
+      });
     }
   }
 
