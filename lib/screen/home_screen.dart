@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:moventra/themes/app_colors.dart';
 import 'package:moventra/widgets/Home/coupon_card.dart';
 import 'package:moventra/widgets/Home/favorite_card.dart';
@@ -50,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // Estado para mostrar información de ubicación
   String? _currentLocationAddress;
   bool _isLoadingLocation = false;
-  bool _showHelp = true; // Mostrar ayuda la primera vez
+  bool _showHelp = false; // Se determinará basado en SharedPreferences
 
   // Estado para favoritos
   List<FavoriteLocation> _favorites = [];
@@ -75,26 +76,74 @@ class _HomeScreenState extends State<HomeScreen> {
     _getCurrentLocation();
     // Cargar favoritos
     _loadFavorites();
-    
-    // Mostrar modal de ayuda después de un breve delay
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted && _showHelp) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const HelpModal(isVisible: true),
-          ).then((_) {
-            // Ocultar ayuda después de completar el tutorial
-            if (mounted) {
-              setState(() {
-                _showHelp = false;
+    // Verificar si mostrar el tutorial
+    _checkFirstTimeUser();
+  }
+
+  Future<void> _checkFirstTimeUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final hasSeenTutorial = prefs.getBool('has_seen_tutorial') ?? false;
+      
+      if (!hasSeenTutorial) {
+        setState(() {
+          _showHelp = true;
+        });
+        
+        // Mostrar modal de ayuda después de un breve delay
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (mounted && _showHelp) {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => const HelpModal(isVisible: true),
+              ).then((_) {
+                // Marcar que ya se vio el tutorial y ocultar ayuda
+                _markTutorialAsSeen();
               });
             }
           });
-        }
-      });
-    });
+        });
+      }
+    } catch (e) {
+      print('Error checking first time user: $e');
+    }
+  }
+
+  Future<void> _markTutorialAsSeen() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_seen_tutorial', true);
+      
+      if (mounted) {
+        setState(() {
+          _showHelp = false;
+        });
+      }
+      
+      print('✅ Tutorial marked as seen');
+    } catch (e) {
+      print('Error marking tutorial as seen: $e');
+    }
+  }
+
+  // Función opcional para resetear el tutorial (útil para testing)
+  Future<void> _resetTutorial() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('has_seen_tutorial', false);
+      
+      if (mounted) {
+        setState(() {
+          _showHelp = true;
+        });
+      }
+      
+      print('🔄 Tutorial reset - will show again next time');
+    } catch (e) {
+      print('Error resetting tutorial: $e');
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -216,7 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
       _fromLatitude = lat;
       _fromLongitude = lng;
       _fromController.text = name;
-      _showHelp = false; // Ocultar ayuda cuando el usuario selecciona origen
+      if (_showHelp) {
+        _markTutorialAsSeen(); // Marcar tutorial como visto cuando el usuario selecciona origen
+      }
       _checkInputs();
     });
 
@@ -375,10 +426,8 @@ class _HomeScreenState extends State<HomeScreen> {
             barrierDismissible: false,
             builder: (context) => const HelpModal(isVisible: true),
           ).then((_) {
-            // Ocultar ayuda después de completar el tutorial
-            setState(() {
-              _showHelp = false;
-            });
+            // Marcar que ya se vio el tutorial y ocultar ayuda
+            _markTutorialAsSeen();
           });
         },
       ) : null,
