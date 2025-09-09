@@ -1,6 +1,7 @@
 import 'station_model.dart';
 
 class RouteSuggestionModel {
+  final int? rutaId;
   final String tipo;
   final String? ruta; // Para rutas directas
   final String? primeraRuta; // Para transbordos
@@ -15,6 +16,7 @@ class RouteSuggestionModel {
   final TransbordoInfo? transbordo;
 
   RouteSuggestionModel({
+    this.rutaId,
     required this.tipo,
     this.ruta,
     this.primeraRuta,
@@ -31,6 +33,9 @@ class RouteSuggestionModel {
 
   factory RouteSuggestionModel.fromJson(Map<String, dynamic> json) {
     return RouteSuggestionModel(
+      rutaId: json['ruta_id'] is int
+          ? json['ruta_id']
+          : (json['ruta_id'] is String ? int.tryParse(json['ruta_id']) : null),
       tipo: json['tipo'] ?? 'directo',
       ruta: json['ruta'], // Solo para rutas directas
       primeraRuta: json['primera_ruta'], // Para transbordos
@@ -48,6 +53,7 @@ class RouteSuggestionModel {
 
   Map<String, dynamic> toJson() {
     return {
+      if (rutaId != null) 'ruta_id': rutaId,
       'tipo': tipo,
       if (ruta != null) 'ruta': ruta,
       if (primeraRuta != null) 'primera_ruta': primeraRuta,
@@ -84,7 +90,7 @@ class RouteSuggestionModel {
     }
   }
 
-  int get routeId => routeName.hashCode;
+  int get routeId => rutaId ?? routeName.hashCode;
   int get totalStations => 0;
   StationModel get departureStation => StationModel(
     id: 1,

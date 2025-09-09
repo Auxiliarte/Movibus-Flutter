@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../services/location_service.dart';
 import '../../services/driver_tracking_service.dart';
 import '../../themes/app_colors.dart';
 
@@ -21,6 +24,8 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
   bool _isLoading = true;
   bool _hasError = false;
   String _errorMessage = '';
+  GoogleMapController? _mapController;
+  LatLng? _userLatLng;
 
   @override
   void initState() {
@@ -28,6 +33,7 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
     _loadTrackingInfo();
     // Actualizar cada 30 segundos
     _startPeriodicUpdate();
+    _loadUserLocation();
   }
 
   void _startPeriodicUpdate() {
@@ -37,6 +43,27 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
         _startPeriodicUpdate();
       }
     });
+  }
+
+  Future<void> _loadUserLocation() async {
+    try {
+      final position = await LocationService.getCurrentLocation();
+      if (!mounted) return;
+      if (position != null) {
+        setState(() {
+          _userLatLng = LatLng(position.latitude, position.longitude);
+        });
+      }
+    } catch (e) {
+      // Silencioso: si falla, seguimos mostrando solo el bus
+      print('❌ Error obteniendo ubicación del usuario: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadTrackingInfo() async {
@@ -192,6 +219,18 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                       color: Colors.red[600],
                     ),
                   ),
+                  if (_errorMessage.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      _errorMessage,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.red[400],
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -374,6 +413,8 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
                 color: Colors.blue[700]!,
               ),
               const SizedBox(height: 12),
+              _buildMapSection(currentLocation),
+              const SizedBox(height: 12),
             ],
 
             // Estación más cercana
@@ -432,6 +473,63 @@ class _BusTrackingWidgetState extends State<BusTrackingWidget> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMapSection(Map<String, dynamic> currentLocation) {
+    final double busLat = (currentLocation['latitude'] as num).toDouble();
+    final double busLng = (currentLocation['longitude'] as num).toDouble();
+    final LatLng busLatLng = LatLng(busLat, busLng);
+
+    final Set<Marker> markers = {
+      Marker(
+        markerId: const MarkerId('bus'),
+        position: busLatLng,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: const InfoWindow(title: 'Autobús'),
+      ),
+      if (_userLatLng != null)
+        Marker(
+          markerId: const MarkerId('user'),
+          position: _userLatLng!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+          infoWindow: const InfoWindow(title: 'Tú'),
+        ),
+    };
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: 220,
+        child: GoogleMap(
+          initialCameraPosition: CameraPosition(target: busLatLng, zoom: 14),
+          markers: markers,
+          myLocationEnabled: _userLatLng != null,
+          myLocationButtonEnabled: true,
+          zoomControlsEnabled: true,
+          onMapCreated: (controller) {
+            _mapController = controller;
+            // Ajustar a ambos puntos si se tiene la ubicación del usuario
+            if (_userLatLng != null) {
+              final LatLngBounds bounds = LatLngBounds(
+                southwest: LatLng(
+                  math.min(busLat, _userLatLng!.latitude),
+                  math.min(busLng, _userLatLng!.longitude),
+                ),
+                northeast: LatLng(
+                  math.max(busLat, _userLatLng!.latitude),
+                  math.max(busLng, _userLatLng!.longitude),
+                ),
+              );
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _mapController?.animateCamera(
+                  CameraUpdate.newLatLngBounds(bounds, 60),
+                );
+              });
+            }
+          },
         ),
       ),
     );
