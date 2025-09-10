@@ -472,6 +472,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         _currentStepIndex = (_currentStepIndex - 1).clamp(0, _navigationSteps.length - 1);
                       });
                     },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
+                    ),
                     icon: const Icon(Icons.arrow_back),
                     label: const Text('Anterior'),
                   ),
