@@ -40,6 +40,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
   List<NavigationStep> _navigationSteps = [];
   Timer? _locationTimer;
   LatLng? _currentUserLocation;
+  double _currentBearing = 0.0;
+  bool _followBearing = true; // Seguir dirección del usuario por defecto
 
   @override
   void initState() {
@@ -153,20 +155,71 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   void _startLocationTracking() {
-    _locationTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
-      try {
-        final position = await LocationService.getCurrentLocation();
-        if (position != null) {
+    // Obtener ubicación inicial inmediatamente
+    _getCurrentLocation();
+    
+    // Actualizar ubicación cada 3 segundos para navegación en tiempo real
+    _locationTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      _getCurrentLocation();
+    });
+  }
+
+  void _getCurrentLocation() async {
+    try {
+      final position = await LocationService.getCurrentLocation();
+      if (position != null) {
+        final newLocation = LatLng(position.latitude, position.longitude);
+        
+        // Solo actualizar si la ubicación ha cambiado significativamente (más de 5 metros)
+        if (_currentUserLocation == null || 
+            _calculateDistance(_currentUserLocation!, newLocation) > 5) {
+          
+          // Calcular bearing (dirección hacia donde se mueve)
+          if (_currentUserLocation != null) {
+            _currentBearing = _calculateBearing(_currentUserLocation!, newLocation);
+          }
+          
           setState(() {
-            _currentUserLocation = LatLng(position.latitude, position.longitude);
+            _currentUserLocation = newLocation;
           });
           _updateUserLocationMarker();
           _checkStepProgress();
+          _updateMapCamera();
         }
-      } catch (e) {
-        print('Error obteniendo ubicación: $e');
       }
-    });
+    } catch (e) {
+      print('Error obteniendo ubicación: $e');
+    }
+  }
+
+  double _calculateBearing(LatLng start, LatLng end) {
+    final lat1Rad = start.latitude * (pi / 180);
+    final lat2Rad = end.latitude * (pi / 180);
+    final deltaLngRad = (end.longitude - start.longitude) * (pi / 180);
+    
+    final y = sin(deltaLngRad) * cos(lat2Rad);
+    final x = cos(lat1Rad) * sin(lat2Rad) - sin(lat1Rad) * cos(lat2Rad) * cos(deltaLngRad);
+    
+    final bearingRad = atan2(y, x);
+    final bearingDeg = (bearingRad * (180 / pi) + 360) % 360;
+    
+    return bearingDeg;
+  }
+
+  void _updateMapCamera() {
+    if (_currentUserLocation == null || _mapController == null) return;
+    
+    // Seguir al usuario con la cámara
+    _mapController!.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: _currentUserLocation!,
+          zoom: 17, // Zoom más cercano para navegación
+          bearing: _followBearing ? _currentBearing : 0, // Orientar según preferencia del usuario
+          tilt: _followBearing ? 45 : 0, // Vista 3D solo cuando sigue bearing
+        ),
+      ),
+    );
   }
 
   void _updateUserLocationMarker() {
@@ -175,21 +228,20 @@ class _NavigationScreenState extends State<NavigationScreen> {
     // Remover marcador anterior del usuario
     _markers.removeWhere((marker) => marker.markerId.value == 'user_current');
     
-    // Agregar nuevo marcador del usuario
+    // Agregar nuevo marcador del usuario con icono distintivo para navegación
     _markers.add(Marker(
       markerId: const MarkerId('user_current'),
       position: _currentUserLocation!,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      infoWindow: const InfoWindow(
-        title: 'Tu ubicación',
-        snippet: 'Ubicación actual',
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+      infoWindow: InfoWindow(
+        title: '📍 Tu ubicación actual',
+        snippet: 'Navegando - Paso ${_currentStepIndex + 1} de ${_navigationSteps.length}',
       ),
     ));
     
-    // Centrar mapa en la ubicación actual
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLng(_currentUserLocation!),
-    );
+    setState(() {
+      // Actualizar markers en el estado
+    });
   }
 
   void _checkStepProgress() {
@@ -198,10 +250,82 @@ class _NavigationScreenState extends State<NavigationScreen> {
     final currentStep = _navigationSteps[_currentStepIndex];
     final distance = _calculateDistance(_currentUserLocation!, currentStep.location);
     
-    // Si está cerca del objetivo del paso actual (menos de 50 metros)
-    if (distance < 50) {
-      _completeCurrentStep();
+    // Diferentes distancias según el tipo de paso
+    double thresholdDistance = 50; // Default: 50 metros
+    
+    switch (currentStep.type) {
+      case NavigationStepType.walk:
+        thresholdDistance = 30; // 30 metros para caminar
+        break;
+      case NavigationStepType.bus:
+        thresholdDistance = 100; // 100 metros para estaciones de autobús
+        break;
+      case NavigationStepType.transfer:
+        thresholdDistance = 50; // 50 metros para transbordos
+        break;
     }
+    
+    // Si está cerca del objetivo del paso actual
+    if (distance < thresholdDistance) {
+      _showArrivalNotification(currentStep, distance);
+      _completeCurrentStep();
+    } else if (distance < thresholdDistance * 2) {
+      // Notificación de proximidad (cuando está cerca pero no ha llegado)
+      _showProximityNotification(currentStep, distance);
+    }
+  }
+
+  void _showArrivalNotification(NavigationStep step, double distance) {
+    String message = '';
+    switch (step.type) {
+      case NavigationStepType.walk:
+        message = '¡Has llegado! Ahora ${step.title.toLowerCase()}';
+        break;
+      case NavigationStepType.bus:
+        message = '¡Estación alcanzada! ${step.title}';
+        break;
+      case NavigationStepType.transfer:
+        message = '¡Punto de transbordo alcanzado!';
+        break;
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 4),
+      ),
+    );
+  }
+
+  int _lastNotifiedStep = -1;
+  
+  void _showProximityNotification(NavigationStep step, double distance) {
+    // Evitar spam de notificaciones - solo mostrar una vez por paso
+    if (_lastNotifiedStep == _currentStepIndex) return;
+    _lastNotifiedStep = _currentStepIndex;
+    
+    String message = 'Te acercas a tu destino (${distance.round()}m)';
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.near_me, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: AppColors.lightPrimaryButton,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void _completeCurrentStep() {
@@ -299,51 +423,83 @@ class _NavigationScreenState extends State<NavigationScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Mapa de navegación
-          Expanded(
-            flex: 3,
-            child: GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: LatLng(widget.userLatitude, widget.userLongitude),
-                zoom: 16,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Mapa de navegación
+            Expanded(
+              flex: 2,
+              child: Stack(
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: LatLng(widget.userLatitude, widget.userLongitude),
+                      zoom: 16,
+                    ),
+                    markers: _markers,
+                    polylines: _polylines,
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController = controller;
+                    },
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    zoomControlsEnabled: true,
+                    scrollGesturesEnabled: true,
+                    zoomGesturesEnabled: true,
+                    tiltGesturesEnabled: true,
+                    rotateGesturesEnabled: true,
+                    mapType: MapType.normal,
+                  ),
+                  
+                  // Botón para alternar modo de navegación
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: FloatingActionButton(
+                      mini: true,
+                      backgroundColor: _followBearing ? AppColors.lightPrimaryButton : Colors.white,
+                      foregroundColor: _followBearing ? Colors.white : AppColors.lightPrimaryButton,
+                      elevation: 4,
+                      onPressed: () {
+                        setState(() {
+                          _followBearing = !_followBearing;
+                        });
+                        _updateMapCamera();
+                      },
+                      tooltip: _followBearing ? 'Vista norte arriba' : 'Seguir dirección',
+                      child: Icon(
+                        _followBearing ? Icons.navigation : Icons.north,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              markers: _markers,
-              polylines: _polylines,
-              onMapCreated: (GoogleMapController controller) {
-                _mapController = controller;
-              },
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
-              zoomControlsEnabled: true,
-              scrollGesturesEnabled: true,
-              zoomGesturesEnabled: true,
-              tiltGesturesEnabled: true,
-              rotateGesturesEnabled: true,
-              mapType: MapType.normal,
             ),
-          ),
-          
-          // Panel de instrucciones
-          Expanded(
-            flex: 2,
-            child: Container(
+            
+            // Panel de instrucciones
+            Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.4, // Máximo 40% de la pantalla
+                minHeight: 200, // Mínimo para mostrar información básica
+              ),
               decoration: BoxDecoration(
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     spreadRadius: 1,
                     blurRadius: 5,
                     offset: const Offset(0, -2),
                   ),
                 ],
               ),
-              child: _buildNavigationPanel(),
+              child: SingleChildScrollView(
+                child: _buildNavigationPanel(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -352,19 +508,49 @@ class _NavigationScreenState extends State<NavigationScreen> {
     if (_navigationSteps.isEmpty) return const SizedBox();
     
     final currentStep = _navigationSteps[_currentStepIndex];
+    final distanceToTarget = _currentUserLocation != null 
+        ? _calculateDistance(_currentUserLocation!, currentStep.location)
+        : 0.0;
     
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Información de distancia en tiempo real
+          if (_currentUserLocation != null) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.lightPrimaryButton.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.navigation, size: 16, color: AppColors.lightPrimaryButton),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${distanceToTarget.round()}m restantes',
+                    style: TextStyle(
+                      color: AppColors.lightPrimaryButton,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          
           // Paso actual
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: currentStep.iconColor.withOpacity(0.1),
+                  color: currentStep.iconColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -431,7 +617,53 @@ class _NavigationScreenState extends State<NavigationScreen> {
             ],
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          
+          // Próximo paso (si existe)
+          if (_currentStepIndex < _navigationSteps.length - 1) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _navigationSteps[_currentStepIndex + 1].icon,
+                    color: Colors.grey.shade600,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Después:',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          _navigationSteps[_currentStepIndex + 1].title,
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           
           // Progress bar
           Row(
