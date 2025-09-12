@@ -14,6 +14,7 @@ class RouteSuggestionModel {
   final TrayectoInfo? trayecto;
   final TrayectosInfo? trayectos;
   final TransbordoInfo? transbordo;
+  final RutaCaminandoInfo? rutaCaminandoDesdeOrigen;
 
   RouteSuggestionModel({
     this.rutaId,
@@ -29,6 +30,7 @@ class RouteSuggestionModel {
     this.trayecto,
     this.trayectos,
     this.transbordo,
+    this.rutaCaminandoDesdeOrigen,
   });
 
   factory RouteSuggestionModel.fromJson(Map<String, dynamic> json) {
@@ -48,6 +50,8 @@ class RouteSuggestionModel {
       trayecto: json['trayecto'] != null ? TrayectoInfo.fromJson(json['trayecto']) : null,
       trayectos: json['trayectos'] != null ? TrayectosInfo.fromJson(json['trayectos']) : null,
       transbordo: json['transbordo_en'] != null ? TransbordoInfo.fromJson(json['transbordo_en']) : null,
+      rutaCaminandoDesdeOrigen: json['ruta_caminando_desde_origen'] != null 
+          ? RutaCaminandoInfo.fromJson(json['ruta_caminando_desde_origen']) : null,
     );
   }
 
@@ -66,6 +70,7 @@ class RouteSuggestionModel {
       if (trayecto != null) 'trayecto': trayecto!.toJson(),
       if (trayectos != null) 'trayectos': trayectos!.toJson(),
       if (transbordo != null) 'transbordo_en': transbordo!.toJson(),
+      if (rutaCaminandoDesdeOrigen != null) 'ruta_caminando_desde_origen': rutaCaminandoDesdeOrigen!.toJson(),
     };
   }
 
@@ -388,6 +393,75 @@ class TransbordoInfo {
       'coordenadas_destino': {
         'latitud': latitudDestino,
         'longitud': longitudDestino,
+      },
+    };
+  }
+}
+
+class RutaCaminandoInfo {
+  final String distanciaTotal;
+  final String tiempoEstimado;
+  final List<PuntoRuta> puntosRuta;
+
+  RutaCaminandoInfo({
+    required this.distanciaTotal,
+    required this.tiempoEstimado,
+    required this.puntosRuta,
+  });
+
+  factory RutaCaminandoInfo.fromJson(Map<String, dynamic> json) {
+    return RutaCaminandoInfo(
+      distanciaTotal: json['distancia_total'] ?? '0 metros',
+      tiempoEstimado: json['tiempo_estimado'] ?? '0 minutos',
+      puntosRuta: (json['puntos_ruta'] as List?)
+          ?.map((punto) => PuntoRuta.fromJson(punto))
+          .toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'distancia_total': distanciaTotal,
+      'tiempo_estimado': tiempoEstimado,
+      'puntos_ruta': puntosRuta.map((p) => p.toJson()).toList(),
+    };
+  }
+}
+
+class PuntoRuta {
+  final int orden;
+  final String tipo;
+  final String descripcion;
+  final double latitud;
+  final double longitud;
+
+  PuntoRuta({
+    required this.orden,
+    required this.tipo,
+    required this.descripcion,
+    required this.latitud,
+    required this.longitud,
+  });
+
+  factory PuntoRuta.fromJson(Map<String, dynamic> json) {
+    Map<String, dynamic> coordenadas = json['coordenadas'] ?? {};
+    return PuntoRuta(
+      orden: json['orden'] ?? 0,
+      tipo: json['tipo'] ?? 'intermedio',
+      descripcion: json['descripcion'] ?? 'Punto de ruta',
+      latitud: coordenadas['latitud']?.toDouble() ?? 0.0,
+      longitud: coordenadas['longitud']?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'orden': orden,
+      'tipo': tipo,
+      'descripcion': descripcion,
+      'coordenadas': {
+        'latitud': latitud,
+        'longitud': longitud,
       },
     };
   }

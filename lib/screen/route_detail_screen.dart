@@ -116,6 +116,28 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       );
     }
 
+    // Agregar marcadores opcionales para puntos de caminata (solo puntos intermedios)
+    if (widget.routeSuggestion.rutaCaminandoDesdeOrigen != null) {
+      final puntosIntermedios = widget.routeSuggestion.rutaCaminandoDesdeOrigen!.puntosRuta
+          .where((punto) => punto.tipo == 'intermedio')
+          .toList();
+      
+      for (int i = 0; i < puntosIntermedios.length; i++) {
+        final punto = puntosIntermedios[i];
+        _markers.add(
+          Marker(
+            markerId: MarkerId('walking_point_$i'),
+            position: LatLng(punto.latitud, punto.longitud),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+            infoWindow: InfoWindow(
+              title: 'Punto de caminata',
+              snippet: punto.descripcion,
+            ),
+          ),
+        );
+      }
+    }
+
     // --- POLILÍNEAS ---
     _polylines = {};
 
@@ -123,16 +145,28 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       // --- RUTA CON TRANSBORDO ---
 
       // 1. Trayecto caminando (usuario -> estación de partida)
+      List<LatLng> walkingPoints;
+      if (widget.routeSuggestion.rutaCaminandoDesdeOrigen != null && 
+          widget.routeSuggestion.rutaCaminandoDesdeOrigen!.puntosRuta.isNotEmpty) {
+        // Usar puntos detallados de la API
+        walkingPoints = widget.routeSuggestion.rutaCaminandoDesdeOrigen!.puntosRuta
+            .map((punto) => LatLng(punto.latitud, punto.longitud))
+            .toList();
+      } else {
+        // Fallback: línea directa
+        walkingPoints = [
+          LatLng(widget.userLatitude, widget.userLongitude),
+          LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
+        ];
+      }
+      
       _polylines.add(
         Polyline(
           polylineId: const PolylineId('walk_to_departure'),
           color: Colors.blue,
           width: 4,
           patterns: [PatternItem.dash(20), PatternItem.gap(10)],
-          points: [
-            LatLng(widget.userLatitude, widget.userLongitude),
-            LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
-          ],
+          points: walkingPoints,
         ),
       );
 
@@ -230,16 +264,28 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       // --- RUTA DIRECTA ---
 
       // 1. Trayecto caminando (usuario -> estación de partida)
+      List<LatLng> walkingPoints;
+      if (widget.routeSuggestion.rutaCaminandoDesdeOrigen != null && 
+          widget.routeSuggestion.rutaCaminandoDesdeOrigen!.puntosRuta.isNotEmpty) {
+        // Usar puntos detallados de la API
+        walkingPoints = widget.routeSuggestion.rutaCaminandoDesdeOrigen!.puntosRuta
+            .map((punto) => LatLng(punto.latitud, punto.longitud))
+            .toList();
+      } else {
+        // Fallback: línea directa
+        walkingPoints = [
+          LatLng(widget.userLatitude, widget.userLongitude),
+          LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
+        ];
+      }
+      
       _polylines.add(
         Polyline(
           polylineId: const PolylineId('walk_to_departure'),
           color: Colors.blue,
           width: 4,
           patterns: [PatternItem.dash(20), PatternItem.gap(10)],
-          points: [
-            LatLng(widget.userLatitude, widget.userLongitude),
-            LatLng(widget.routeSuggestion.departureStation.latitude, widget.routeSuggestion.departureStation.longitude),
-          ],
+          points: walkingPoints,
         ),
       );
 
