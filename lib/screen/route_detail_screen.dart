@@ -116,27 +116,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       );
     }
 
-    // Agregar marcadores opcionales para puntos de caminata (solo puntos intermedios)
-    if (widget.routeSuggestion.rutaCaminandoDesdeOrigen != null) {
-      final puntosIntermedios = widget.routeSuggestion.rutaCaminandoDesdeOrigen!.puntosRuta
-          .where((punto) => punto.tipo == 'intermedio')
-          .toList();
-      
-      for (int i = 0; i < puntosIntermedios.length; i++) {
-        final punto = puntosIntermedios[i];
-        _markers.add(
-          Marker(
-            markerId: MarkerId('walking_point_$i'),
-            position: LatLng(punto.latitud, punto.longitud),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
-            infoWindow: InfoWindow(
-              title: 'Punto de caminata',
-              snippet: punto.descripcion,
-            ),
-          ),
-        );
-      }
-    }
+    // No agregar marcadores para puntos de caminata inicial para mantener el mapa limpio
 
     // --- POLILÍNEAS ---
     _polylines = {};
