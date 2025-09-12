@@ -624,7 +624,9 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: GoogleMap(
+                    child: Stack(
+                      children: [
+                        GoogleMap(
                           initialCameraPosition: CameraPosition(
                             target: LatLng(
                               (widget.userLatitude + widget.routeSuggestion.departureStation.latitude + widget.routeSuggestion.arrivalStation.latitude + widget.destinationLatitude) / 4,
@@ -646,6 +648,22 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
                           tiltGesturesEnabled: true,
                           rotateGesturesEnabled: true,
                         ),
+                        // Botón para ver ruta completa
+                        Positioned(
+                          bottom: 80, // Encima del botón de ubicación
+                          right: 16,
+                          child: FloatingActionButton(
+                            mini: true,
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppColors.lightPrimaryButton,
+                            elevation: 4,
+                            onPressed: () => _zoomOutMap(),
+                            tooltip: 'Ver ruta completa',
+                            child: const Icon(Icons.zoom_out_map, size: 20),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 
@@ -1312,6 +1330,67 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
           northeast: LatLng(maxLat + latPadding, maxLng + lngPadding),
         ),
         50, // padding adicional
+      ),
+    );
+  }
+
+  void _zoomOutMap() {
+    if (_mapController == null) return;
+
+    // Calcular bounds que incluyan toda la ruta (origen, estaciones y destino)
+    double minLat = double.infinity;
+    double maxLat = -double.infinity;
+    double minLng = double.infinity;
+    double maxLng = -double.infinity;
+
+    // Incluir punto de origen del usuario
+    minLat = min(minLat, widget.userLatitude);
+    maxLat = max(maxLat, widget.userLatitude);
+    minLng = min(minLng, widget.userLongitude);
+    maxLng = max(maxLng, widget.userLongitude);
+
+    // Incluir punto de destino
+    minLat = min(minLat, widget.destinationLatitude);
+    maxLat = max(maxLat, widget.destinationLatitude);
+    minLng = min(minLng, widget.destinationLongitude);
+    maxLng = max(maxLng, widget.destinationLongitude);
+
+    // Incluir todas las polilíneas para obtener la vista completa de la ruta
+    for (final polyline in _polylines) {
+      for (final point in polyline.points) {
+        if (point.latitude != 0.0 && point.longitude != 0.0) {
+          minLat = min(minLat, point.latitude);
+          maxLat = max(maxLat, point.latitude);
+          minLng = min(minLng, point.longitude);
+          maxLng = max(maxLng, point.longitude);
+        }
+      }
+    }
+
+    // Verificar que tenemos coordenadas válidas
+    if (minLat == double.infinity || maxLat == -double.infinity || 
+        minLng == double.infinity || maxLng == -double.infinity) {
+      // Fallback: zoom out genérico
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          const LatLng(22.1565, -100.9855), // San Luis Potosí centro
+          10, // Zoom más alejado
+        ),
+      );
+      return;
+    }
+
+    // Agregar padding extra para ver toda la ruta cómodamente
+    final latPadding = (maxLat - minLat) * 0.2; // 20% de padding
+    final lngPadding = (maxLng - minLng) * 0.2; // 20% de padding
+
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat - latPadding, minLng - lngPadding),
+          northeast: LatLng(maxLat + latPadding, maxLng + lngPadding),
+        ),
+        80, // Padding adicional en píxeles
       ),
     );
   }
