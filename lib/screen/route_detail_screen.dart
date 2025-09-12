@@ -247,16 +247,28 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       }
 
       // 5. Trayecto caminando final (estación de llegada -> destino)
+      List<LatLng> finalWalkingPoints;
+      if (widget.routeSuggestion.rutaCaminandoHaciaDestino != null && 
+          widget.routeSuggestion.rutaCaminandoHaciaDestino!.puntosRuta.isNotEmpty) {
+        // Usar puntos detallados de la API
+        finalWalkingPoints = widget.routeSuggestion.rutaCaminandoHaciaDestino!.puntosRuta
+            .map((punto) => LatLng(punto.latitud, punto.longitud))
+            .toList();
+      } else {
+        // Fallback: línea directa
+        finalWalkingPoints = [
+          LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
+          LatLng(widget.destinationLatitude, widget.destinationLongitude),
+        ];
+      }
+      
       _polylines.add(
         Polyline(
           polylineId: const PolylineId('walk_to_destination'),
-          color: Colors.orange,
+          color: Colors.green,
           width: 4,
           patterns: [PatternItem.dash(20), PatternItem.gap(10)],
-          points: [
-            LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
-            LatLng(widget.destinationLatitude, widget.destinationLongitude),
-          ],
+          points: finalWalkingPoints,
         ),
       );
 
@@ -321,16 +333,28 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       );
 
       // 3. Trayecto caminando (estación de llegada -> destino)
+      List<LatLng> finalWalkingPoints;
+      if (widget.routeSuggestion.rutaCaminandoHaciaDestino != null && 
+          widget.routeSuggestion.rutaCaminandoHaciaDestino!.puntosRuta.isNotEmpty) {
+        // Usar puntos detallados de la API
+        finalWalkingPoints = widget.routeSuggestion.rutaCaminandoHaciaDestino!.puntosRuta
+            .map((punto) => LatLng(punto.latitud, punto.longitud))
+            .toList();
+      } else {
+        // Fallback: línea directa
+        finalWalkingPoints = [
+          LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
+          LatLng(widget.destinationLatitude, widget.destinationLongitude),
+        ];
+      }
+      
       _polylines.add(
         Polyline(
           polylineId: const PolylineId('walk_to_destination'),
-          color: Colors.orange,
+          color: Colors.green,
           width: 4,
           patterns: [PatternItem.dash(20), PatternItem.gap(10)],
-          points: [
-            LatLng(widget.routeSuggestion.arrivalStation.latitude, widget.routeSuggestion.arrivalStation.longitude),
-            LatLng(widget.destinationLatitude, widget.destinationLongitude),
-          ],
+          points: finalWalkingPoints,
         ),
       );
     }
@@ -554,9 +578,9 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildLegendDot(Colors.orange, isDashed: true),
+                  _buildLegendDot(Colors.green, isDashed: true),
                   const SizedBox(width: 4),
-                  const Text('Camina', style: TextStyle(fontSize: 11)),
+                  const Text('Camina final', style: TextStyle(fontSize: 11)),
                 ],
               ),
               Row(
@@ -588,9 +612,9 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildLegendDot(Colors.orange, isDashed: true),
+                  _buildLegendDot(Colors.green, isDashed: true),
                   const SizedBox(width: 4),
-                  const Text('Camina', style: TextStyle(fontSize: 11)),
+                  const Text('Camina final', style: TextStyle(fontSize: 11)),
                 ],
               ),
               Row(

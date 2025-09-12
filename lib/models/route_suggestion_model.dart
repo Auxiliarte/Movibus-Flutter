@@ -15,6 +15,7 @@ class RouteSuggestionModel {
   final TrayectosInfo? trayectos;
   final TransbordoInfo? transbordo;
   final RutaCaminandoInfo? rutaCaminandoDesdeOrigen;
+  final RutaCaminandoInfo? rutaCaminandoHaciaDestino;
 
   RouteSuggestionModel({
     this.rutaId,
@@ -31,6 +32,7 @@ class RouteSuggestionModel {
     this.trayectos,
     this.transbordo,
     this.rutaCaminandoDesdeOrigen,
+    this.rutaCaminandoHaciaDestino,
   });
 
   factory RouteSuggestionModel.fromJson(Map<String, dynamic> json) {
@@ -52,6 +54,8 @@ class RouteSuggestionModel {
       transbordo: json['transbordo_en'] != null ? TransbordoInfo.fromJson(json['transbordo_en']) : null,
       rutaCaminandoDesdeOrigen: json['ruta_caminando_desde_origen'] != null 
           ? RutaCaminandoInfo.fromJson(json['ruta_caminando_desde_origen']) : null,
+      rutaCaminandoHaciaDestino: json['ruta_caminando_hacia_destino'] != null 
+          ? RutaCaminandoInfo.fromJson(json['ruta_caminando_hacia_destino']) : null,
     );
   }
 
@@ -71,6 +75,7 @@ class RouteSuggestionModel {
       if (trayectos != null) 'trayectos': trayectos!.toJson(),
       if (transbordo != null) 'transbordo_en': transbordo!.toJson(),
       if (rutaCaminandoDesdeOrigen != null) 'ruta_caminando_desde_origen': rutaCaminandoDesdeOrigen!.toJson(),
+      if (rutaCaminandoHaciaDestino != null) 'ruta_caminando_hacia_destino': rutaCaminandoHaciaDestino!.toJson(),
     };
   }
 
