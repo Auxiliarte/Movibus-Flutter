@@ -32,6 +32,7 @@ class RouteBasicModel {
   final String description;
   final int totalStations;
   final String createdAt;
+  final String regionId; // Nuevo campo para región
 
   RouteBasicModel({
     required this.id,
@@ -39,6 +40,7 @@ class RouteBasicModel {
     required this.description,
     required this.totalStations,
     required this.createdAt,
+    required this.regionId,
   });
 
   factory RouteBasicModel.fromJson(Map<String, dynamic> json) {
@@ -48,7 +50,19 @@ class RouteBasicModel {
       description: json['description'] ?? 'Sin descripción',
       totalStations: json['total_stations'] ?? 0,
       createdAt: json['created_at'] ?? '',
+      regionId: json['region_id'] ?? 'slp_mx',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'total_stations': totalStations,
+      'created_at': createdAt,
+      'region_id': regionId,
+    };
   }
 }
 

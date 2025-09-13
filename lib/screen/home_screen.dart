@@ -161,16 +161,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _checkInputs();
         print('✅ Set current location: (${_fromLatitude}, $_fromLongitude) - ${_currentLocationAddress}');
         
-        // Mostrar mensaje de éxito
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Ubicación actualizada: ${_currentLocationAddress ?? 'Mi ubicación actual'}'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
       }
     } catch (e) {
       setState(() {

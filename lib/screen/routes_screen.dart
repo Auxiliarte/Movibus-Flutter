@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:moventra/widgets/custom_bottom_nav_bar.dart';
 import '../models/route_model.dart';
 import '../services/route_service.dart';
+import '../services/region_service.dart';
 import 'route_map_screen.dart';
 import 'route_stations_map_screen.dart';
 
@@ -56,16 +57,21 @@ class _RoutesScreenState extends State<RoutesScreen> {
     });
 
     try {
+      // Cargar rutas específicas para la región actual
       final routes = await RouteService.fetchAllRoutes(getBackendUrl());
       setState(() {
         _routes = routes;
         _isLoading = false;
       });
+      
+      print('✅ Cargadas ${routes.length} rutas para la región actual');
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
+      
+      print('❌ Error cargando rutas: $e');
     }
   }
 
@@ -174,13 +180,26 @@ class _RoutesScreenState extends State<RoutesScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text(
-          "Rutas Disponibles",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Rutas Disponibles",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            Text(
+              RegionService.currentRegion.displayName,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey,
+              ),
+            ),
+          ],
         ),
         backgroundColor: Colors.white,
         elevation: 0,
@@ -189,6 +208,7 @@ class _RoutesScreenState extends State<RoutesScreen> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Color(0xFF2196F3)),
             onPressed: _loadRoutes,
+            tooltip: 'Actualizar rutas',
           ),
         ],
       ),

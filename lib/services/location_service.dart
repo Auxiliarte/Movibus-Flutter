@@ -89,9 +89,11 @@ class LocationService {
         );
         
         if (suggestedRegion != null) {
-          print('💡 IMPORTANTE: Detectado que estás en ${suggestedRegion.displayName}');
-          print('💡 La región actual es ${RegionService.currentRegion.displayName}');
-          print('💡 Para mejores resultados de búsqueda, considera cambiar la región');
+          // Cambiar automáticamente la región si es diferente
+          if (suggestedRegion.id != RegionService.currentRegion.id) {
+            print('🔄 Cambiando región automáticamente: ${RegionService.currentRegion.displayName} → ${suggestedRegion.displayName}');
+            await RegionService.changeRegion(suggestedRegion);
+          }
         }
       }
 

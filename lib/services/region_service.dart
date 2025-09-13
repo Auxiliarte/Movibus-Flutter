@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/region_model.dart';
+import 'location_service.dart';
 
 class RegionService {
   static const String _regionKey = 'selected_region_id';
@@ -183,17 +184,6 @@ class RegionService {
     return currentRegion.containsRegionTerms(text);
   }
 
-  // Limpiar datos guardados
-  static Future<void> clearSavedRegion() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_regionKey);
-      _currentRegion = RegionModel.sanLuisPotosi;
-      print('🧹 Región guardada limpiada');
-    } catch (e) {
-      print('❌ Error limpiando región guardada: $e');
-    }
-  }
 
   // Notificar cambio de región (para futuras implementaciones con streams)
   static void _notifyRegionChange(RegionModel newRegion) {
@@ -229,6 +219,40 @@ class RegionService {
       await prefs.setInt(key, currentCount + 1);
     } catch (e) {
       print('❌ Error incrementando uso de región: $e');
+    }
+  }
+
+  // Método para limpiar región guardada y forzar detección automática
+  static Future<bool> clearSavedRegion() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_regionKey);
+      _currentRegion = null; // Resetear región actual
+      print('🧹 Región guardada eliminada - se detectará automáticamente en el próximo inicio');
+      return true;
+    } catch (e) {
+      print('❌ Error limpiando región guardada: $e');
+      return false;
+    }
+  }
+
+  // Método para forzar detección automática de región
+  static Future<bool> forceAutoDetectRegion() async {
+    try {
+      // Obtener ubicación actual
+      final position = await LocationService.getCurrentLocation(autoSuggestRegionChange: false);
+      if (position != null) {
+        final detectedRegion = detectRegionFromCoordinates(position.latitude, position.longitude);
+        if (detectedRegion != null) {
+          await changeRegion(detectedRegion);
+          print('🎯 Región detectada y cambiada automáticamente: ${detectedRegion.displayName}');
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      print('❌ Error en detección automática: $e');
+      return false;
     }
   }
 }
