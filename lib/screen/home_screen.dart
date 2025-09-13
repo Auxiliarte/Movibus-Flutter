@@ -17,6 +17,7 @@ import '../services/coupon_service.dart';
 import '../services/location_service.dart';
 import '../services/location_api_service.dart';
 import '../services/favorite_service.dart';
+import '../services/region_service.dart';
 import 'package:moventra/widgets/Home/place_autocomplete_field.dart';
 import 'add_favorite_screen.dart';
 import 'package:moventra/widgets/Home/help_modal.dart';
@@ -296,12 +297,13 @@ class _HomeScreenState extends State<HomeScreen> {
         });
         print('✅ Got current location: ($_fromLatitude, $_fromLongitude)');
       } else {
-        print('❌ Could not get current location, using default SLP coordinates');
+        print('❌ Could not get current location, using default region coordinates');
+        final region = RegionService.currentRegion;
         setState(() {
-          _fromLatitude = 22.1565; // SLP center
-          _fromLongitude = -100.9855;
+          _fromLatitude = region.centerLatitude;
+          _fromLongitude = region.centerLongitude;
           if (_fromController.text.isEmpty) {
-            _fromController.text = "San Luis Potosí";
+            _fromController.text = region.displayName;
           }
         });
       }
@@ -745,9 +747,10 @@ class _HomeScreenState extends State<HomeScreen> {
         userLat = currentPosition.latitude;
         userLng = currentPosition.longitude;
       } else {
-        // Coordenadas por defecto de San Luis Potosí si no hay GPS
-        userLat = 22.1565;
-        userLng = -100.9855;
+        // Coordenadas por defecto de la región actual si no hay GPS
+        final region = RegionService.currentRegion;
+        userLat = region.centerLatitude;
+        userLng = region.centerLongitude;
       }
 
       // El favorito será el destino

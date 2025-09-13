@@ -3,6 +3,7 @@ import 'package:permission_handler/permission_handler.dart' as permission_handle
 import 'dart:io' show Platform;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'region_service.dart';
 
 class LocationService {
   static const String _googleApiKey = "AIzaSyA2NeKAZRdbRsy6cSj52TJRGJdf5wtlSA4";
@@ -66,17 +67,35 @@ class LocationService {
   }
 
   // Obtener ubicación actual con mejor manejo de errores para iOS
-  static Future<Position?> getCurrentLocation() async {
+  static Future<Position?> getCurrentLocation({bool autoSuggestRegionChange = true}) async {
     try {
       print('📍 Iniciando obtención de ubicación...');
       
+      Position? position;
+      
       if (Platform.isIOS) {
         // En iOS, usar solo Geolocator
-        return await _getCurrentLocationIOS();
+        position = await _getCurrentLocationIOS();
       } else {
         // En Android, usar el flujo completo
-        return await _getCurrentLocationAndroid();
+        position = await _getCurrentLocationAndroid();
       }
+
+      // Verificar si necesita cambio de región automáticamente
+      if (position != null && autoSuggestRegionChange) {
+        final suggestedRegion = RegionService.suggestRegionChange(
+          position.latitude, 
+          position.longitude
+        );
+        
+        if (suggestedRegion != null) {
+          print('💡 IMPORTANTE: Detectado que estás en ${suggestedRegion.displayName}');
+          print('💡 La región actual es ${RegionService.currentRegion.displayName}');
+          print('💡 Para mejores resultados de búsqueda, considera cambiar la región');
+        }
+      }
+
+      return position;
     } catch (e) {
       print('❌ Error obteniendo ubicación: $e');
       if (e.toString().contains('timeout')) {
@@ -215,9 +234,19 @@ class LocationService {
   // Obtener dirección desde coordenadas usando Google Geocoding API
   static Future<String?> getAddressFromCoordinates(
     double latitude,
-    double longitude,
-  ) async {
+    double longitude, {
+    bool autoSuggestRegionChange = true,
+  }) async {
     try {
+      // Verificar si necesita cambio de región antes de hacer la consulta
+      if (autoSuggestRegionChange) {
+        final suggestedRegion = RegionService.suggestRegionChange(latitude, longitude);
+        if (suggestedRegion != null) {
+          print('💡 Coordenadas ($latitude, $longitude) están en ${suggestedRegion.displayName}');
+          print('💡 Considera cambiar la región para mejores resultados de búsqueda');
+        }
+      }
+
       final response = await http.get(
         Uri.parse(
           'https://maps.googleapis.com/maps/api/geocode/json'
@@ -235,12 +264,17 @@ class LocationService {
           final result = data['results'][0];
           final formattedAddress = result['formatted_address'];
           
-          // Filtrar solo direcciones de San Luis Potosí
-          if (formattedAddress.toLowerCase().contains('san luis potosí') ||
-              formattedAddress.toLowerCase().contains('slp')) {
+          // Verificar si la dirección está dentro de la región actual
+          final currentRegion = RegionService.currentRegion;
+          
+          // Verificar si las coordenadas están dentro de la región actual
+          final isWithinCurrentRegion = RegionService.isWithinCurrentRegion(latitude, longitude);
+          
+          if (isWithinCurrentRegion && currentRegion.containsRegionTerms(formattedAddress)) {
+            // Si está dentro de la región actual y contiene términos de la región, devolver tal como viene
             return formattedAddress;
-          } else {
-            // Si no es de SLP, devolver solo la parte principal
+          } else if (isWithinCurrentRegion) {
+            // Si está dentro de la región pero no contiene términos, agregar información de región
             final addressComponents = result['address_components'] as List;
             final streetNumber = addressComponents.firstWhere(
               (component) => component['types'].contains('street_number'),
@@ -253,10 +287,13 @@ class LocationService {
             )['long_name'];
             
             if (streetNumber.isNotEmpty && route.isNotEmpty) {
-              return '$route $streetNumber, San Luis Potosí, SLP';
+              return '$route $streetNumber, ${currentRegion.displayName}, ${currentRegion.state}';
             } else if (route.isNotEmpty) {
-              return '$route, San Luis Potosí, SLP';
+              return '$route, ${currentRegion.displayName}, ${currentRegion.state}';
             }
+          } else {
+            // Si está fuera de la región actual, devolver la dirección real tal como viene de Google
+            return formattedAddress;
           }
         }
       }
@@ -281,7 +318,7 @@ class LocationService {
           '?address=${Uri.encodeComponent(address)}'
           '&key=$_googleApiKey'
           '&language=es'
-          '&components=country:mx|administrative_area:San Luis Potosí'
+          '&components=country:${RegionService.currentRegion.countryCode}|administrative_area:${RegionService.currentRegion.state}'
         ),
       ).timeout(const Duration(seconds: 10));
 

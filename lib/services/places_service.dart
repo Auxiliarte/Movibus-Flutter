@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'region_service.dart';
+import '../models/region_model.dart';
 
 class PlacePrediction {
   final String placeId;
@@ -51,14 +53,9 @@ class PlaceDetails {
 
 class PlacesService {
   static const String apiKey = "AIzaSyA2NeKAZRdbRsy6cSj52TJRGJdf5wtlSA4";
-  
-  // Coordenadas aproximadas del centro de San Luis Potosí
-  static const double _slpCenterLat = 22.1565;
-  static const double _slpCenterLng = -100.9855;
-  static const int _slpRadius = 50000; // 50km de radio
 
-  // Buscar lugares basándose en el texto ingresado, limitado a San Luis Potosí
-  static Future<List<PlacePrediction>> searchPlaces(String input) async {
+  // Buscar lugares basándose en el texto ingresado, usando la región actual
+  static Future<List<PlacePrediction>> searchPlaces(String input, {bool autoDetectRegion = true}) async {
     print('🌍 PlacesService.searchPlaces called with input: "$input"');
     
     if (input.isEmpty) {
@@ -67,23 +64,25 @@ class PlacesService {
     }
     
     try {
-      // Agregar "San Luis Potosí" al input para limitar las búsquedas a SLP
-      String searchInput = input;
-      if (!input.toLowerCase().contains('san luis potosí') && 
-          !input.toLowerCase().contains('slp') &&
-          !input.toLowerCase().contains('potosí')) {
-        searchInput = '$input, San Luis Potosí, SLP';
-      }
+      // Formatear input para la región actual
+      final searchInput = RegionService.formatSearchInput(input);
       
-      // Construir la consulta con restricciones específicas para SLP
+      // Obtener configuración de la región actual
+      final regionConfig = RegionService.getPlacesApiConfig();
+      
+      print('🌍 Searching with region: ${RegionService.currentRegion.displayName}');
+      print('🌍 Search location: ${regionConfig['location']}');
+      print('🌍 Search components: ${regionConfig['components']}');
+      
+      // Construir la consulta con restricciones específicas para la región actual
       final queryParams = {
         'input': searchInput,
         'key': apiKey,
-        'language': 'es',
-        'components': 'country:mx',
+        'language': regionConfig['language']!,
+        'components': regionConfig['components']!,
         'types': 'address|street_address|route|sublocality|premise', // Priorizar direcciones y calles
-        'location': '$_slpCenterLat,$_slpCenterLng',
-        'radius': _slpRadius.toString(),
+        'location': regionConfig['location']!,
+        'radius': regionConfig['radius']!,
         'strictbounds': 'true',
       };
 
@@ -116,15 +115,26 @@ class PlacesService {
           final results = predictions
               .map((p) => PlacePrediction.fromJson(p))
               .where((prediction) {
-                // Filtrar solo resultados de San Luis Potosí
+                // Filtrar solo resultados de la región actual O detectar cambio de región automáticamente
                 final description = prediction.description.toLowerCase();
-                final isSLP = description.contains('san luis potosí') || 
-                       description.contains('slp') ||
-                       description.contains('potosí') ||
-                       description.contains('san luis');
+                final currentRegion = RegionService.currentRegion;
+                final isCurrentRegion = currentRegion.containsRegionTerms(description);
                 
-                print('🌍 Checking prediction: "${prediction.description}" - isSLP: $isSLP');
-                return isSLP;
+                print('🌍 Checking prediction: "${prediction.description}" - isCurrentRegion: $isCurrentRegion');
+                
+                if (!isCurrentRegion && autoDetectRegion) {
+                  // Intentar detectar si los resultados son de otra región conocida
+                  final detectedRegion = _detectRegionFromDescription(description);
+                  if (detectedRegion != null && detectedRegion.id != currentRegion.id) {
+                    print('💡 Detected different region in results: ${detectedRegion.displayName}');
+                    print('💡 Consider changing region for better results');
+                    
+                    // Por ahora, permitir estos resultados pero con advertencia
+                    return true;
+                  }
+                }
+                
+                return isCurrentRegion;
               })
               .toList();
           
@@ -241,22 +251,20 @@ class PlacesService {
     if (input.isEmpty) return [];
     
     try {
-      // Agregar "San Luis Potosí" al input para limitar las búsquedas a SLP
-      String searchInput = input;
-      if (!input.toLowerCase().contains('san luis potosí') && 
-          !input.toLowerCase().contains('slp') &&
-          !input.toLowerCase().contains('potosí')) {
-        searchInput = '$input, San Luis Potosí, SLP';
-      }
+      // Formatear input para la región actual
+      final searchInput = RegionService.formatSearchInput(input);
+      
+      // Obtener configuración de la región actual
+      final regionConfig = RegionService.getPlacesApiConfig();
       
       final queryParams = {
         'input': searchInput,
         'key': apiKey,
-        'language': 'es',
-        'components': 'country:mx',
+        'language': regionConfig['language']!,
+        'components': regionConfig['components']!,
         'types': 'establishment',
-        'location': '$_slpCenterLat,$_slpCenterLng',
-        'radius': _slpRadius.toString(),
+        'location': regionConfig['location']!,
+        'radius': regionConfig['radius']!,
       };
 
       final uri = Uri.https(
@@ -289,13 +297,11 @@ class PlacesService {
               .map((p) => PlacePrediction.fromJson(p))
               .where((prediction) {
                 final description = prediction.description.toLowerCase();
-                final isSLP = description.contains('san luis potosí') || 
-                       description.contains('slp') ||
-                       description.contains('potosí') ||
-                       description.contains('san luis');
+                final currentRegion = RegionService.currentRegion;
+                final isCurrentRegion = currentRegion.containsRegionTerms(description);
                 
-                print('🏪 Checking establishment: "${prediction.description}" - isSLP: $isSLP');
-                return isSLP;
+                print('🏪 Checking establishment: "${prediction.description}" - isCurrentRegion: $isCurrentRegion');
+                return isCurrentRegion;
               })
               .toList();
           
@@ -325,22 +331,20 @@ class PlacesService {
     if (input.isEmpty) return [];
     
     try {
-      // Agregar "San Luis Potosí" al input para limitar las búsquedas a SLP
-      String searchInput = input;
-      if (!input.toLowerCase().contains('san luis potosí') && 
-          !input.toLowerCase().contains('slp') &&
-          !input.toLowerCase().contains('potosí')) {
-        searchInput = '$input, San Luis Potosí, SLP';
-      }
+      // Formatear input para la región actual
+      final searchInput = RegionService.formatSearchInput(input);
+      
+      // Obtener configuración de la región actual
+      final regionConfig = RegionService.getPlacesApiConfig();
       
       final queryParams = {
         'input': searchInput,
         'key': apiKey,
-        'language': 'es',
-        'components': 'country:mx',
+        'language': regionConfig['language']!,
+        'components': regionConfig['components']!,
         'types': 'street_address|premise|subpremise', // Solo direcciones específicas
-        'location': '$_slpCenterLat,$_slpCenterLng',
-        'radius': _slpRadius.toString(),
+        'location': regionConfig['location']!,
+        'radius': regionConfig['radius']!,
         'strictbounds': 'true',
       };
 
@@ -374,13 +378,11 @@ class PlacesService {
               .map((p) => PlacePrediction.fromJson(p))
               .where((prediction) {
                 final description = prediction.description.toLowerCase();
-                final isSLP = description.contains('san luis potosí') || 
-                       description.contains('slp') ||
-                       description.contains('potosí') ||
-                       description.contains('san luis');
+                final currentRegion = RegionService.currentRegion;
+                final isCurrentRegion = currentRegion.containsRegionTerms(description);
                 
-                print('🏠 Checking address: "${prediction.description}" - isSLP: $isSLP');
-                return isSLP;
+                print('🏠 Checking address: "${prediction.description}" - isCurrentRegion: $isCurrentRegion');
+                return isCurrentRegion;
               })
               .toList();
           
@@ -450,5 +452,19 @@ class PlacesService {
     }
     
     return [];
+  }
+
+  // Método helper para detectar región desde descripción de lugar
+  static RegionModel? _detectRegionFromDescription(String description) {
+    final lowerDescription = description.toLowerCase();
+    
+    // Buscar en todas las regiones disponibles
+    for (final region in RegionService.getAvailableRegions()) {
+      if (region.containsRegionTerms(lowerDescription)) {
+        return region;
+      }
+    }
+    
+    return null;
   }
 } 

@@ -19,10 +19,17 @@ import 'package:moventra/providers/themeprovider.dart';
 import 'package:moventra/screen/profile_screen.dart';
 import 'package:moventra/screen/location_test_screen.dart';
 import 'package:moventra/screen/location_picker_screen.dart';
+import 'package:moventra/screen/region_settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'themes/theme.dart';
+import 'services/region_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Inicializar el servicio de regiones
+  await RegionService.initialize();
+  
   runApp(
     ChangeNotifierProvider(
       create: (_) => ThemeProvider(),
@@ -65,6 +72,7 @@ class MyApp extends StatelessWidget {
           '/EditProfilePass': (_) => const ProfileEditPass(),
           '/EditProfileMail': (_) => const ProfileEditMail(),
           '/couponHistory': (_) => const CouponPromoHistorialScreen(),
+          '/regionSettings': (_) => const RegionSettingsScreen(),
 
           '/locationTest': (_) => const LocationTestScreen(),
           '/locationPicker': (context) {

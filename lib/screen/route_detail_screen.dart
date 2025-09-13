@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/route_suggestion_model.dart';
 import '../themes/app_colors.dart';
 import '../services/driver_tracking_service.dart';
+import '../services/region_service.dart';
 import '../widgets/Home/bus_tracking_widget.dart';
 import '../widgets/Home/station_eta_widget.dart';
 import '../widgets/full_screen_map_modal.dart';
@@ -1293,7 +1294,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
     if (validMarkers.isEmpty) {
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
-          const LatLng(22.1565, -100.9855), // San Luis Potosí centro
+          LatLng(RegionService.currentRegion.centerLatitude, RegionService.currentRegion.centerLongitude), // Centro de región actual
           12,
         ),
       );
@@ -1312,7 +1313,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
         minLng == double.infinity || maxLng == -double.infinity) {
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
-          const LatLng(22.1565, -100.9855), // San Luis Potosí centro
+          LatLng(RegionService.currentRegion.centerLatitude, RegionService.currentRegion.centerLongitude), // Centro de región actual
           12,
         ),
       );
@@ -1373,7 +1374,7 @@ class _RouteDetailScreenState extends State<RouteDetailScreen>
       // Fallback: zoom out genérico
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
-          const LatLng(22.1565, -100.9855), // San Luis Potosí centro
+          LatLng(RegionService.currentRegion.centerLatitude, RegionService.currentRegion.centerLongitude), // Centro de región actual
           10, // Zoom más alejado
         ),
       );

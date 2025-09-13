@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../services/location_api_service.dart';
 import '../../services/location_service.dart';
+import '../../services/region_service.dart';
 import '../../models/route_suggestion_model.dart';
 import '../../screen/route_detail_screen.dart';
 
@@ -742,9 +743,10 @@ class _RouteSuggestionsWidgetState extends State<RouteSuggestionsWidget> {
         }
       } catch (e) {
         print('❌ Error getting user location: $e');
-        // Usar coordenadas por defecto de San Luis Potosí
-        userLat = 22.1565;
-        userLng = -100.9855;
+        // Usar coordenadas por defecto de la región actual
+        final region = RegionService.currentRegion;
+        userLat = region.centerLatitude;
+        userLng = region.centerLongitude;
       }
     }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../services/places_service.dart';
 import '../../services/location_service.dart';
+import '../../services/region_service.dart';
+import '../region_suggestion_banner.dart';
 
 class PlaceAutocompleteField extends StatefulWidget {
   final String hint;
@@ -71,6 +73,9 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
 
     try {
       print('🔍 Calling PlacesService.searchPlaces with: "$value"');
+      
+      // Intentar detectar y cambiar región automáticamente si es necesario
+      await _smartRegionDetection();
       
       // Detectar si el usuario está escribiendo una dirección con número de casa
       final hasNumber = RegExp(r'\d').hasMatch(value);
@@ -248,8 +253,6 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -358,13 +361,13 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
               itemCount: _suggestions.length,
               itemBuilder: (context, index) {
                 final suggestion = _suggestions[index];
-                final description = suggestion.description ?? '';
+                final description = suggestion.description;
                 
                 return Container(
                   decoration: BoxDecoration(
                     border: index < _suggestions.length - 1 
                       ? Border(bottom: BorderSide(color: Colors.grey.shade100))
-                      : null,
+                      : const Border(),
                   ),
                   child: ListTile(
                     leading: Icon(
@@ -432,5 +435,52 @@ class _PlaceAutocompleteFieldState extends State<PlaceAutocompleteField> {
       return parts.skip(1).take(2).join(', ').trim();
     }
     return '';
+  }
+
+  Future<void> _smartRegionDetection() async {
+    try {
+      // Obtener ubicación actual
+      final position = await LocationService.getCurrentLocation(autoSuggestRegionChange: false);
+      
+      if (position != null) {
+        // Intentar cambio inteligente de región
+        final changed = await RegionService.smartRegionChangeForSearch(
+          position.latitude, 
+          position.longitude
+        );
+        
+        if (changed && mounted) {
+          // Notificar que la región cambió
+          print('✅ Región cambiada automáticamente para mejorar búsquedas');
+          
+          // Opcional: mostrar notificación discreta
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.location_on, color: Colors.white, size: 16),
+                  const SizedBox(width: 8),
+                  Text('Búsquedas actualizadas para ${RegionService.currentRegion.displayName}'),
+                ],
+              ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: RegionService.currentRegion.displayName.contains('Bogotá') 
+                ? Colors.blue : Colors.green,
+              action: SnackBarAction(
+                label: 'Ver más',
+                textColor: Colors.white,
+                onPressed: () {
+                  Navigator.pushNamed(context, '/regionSettings');
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('❌ Error en detección inteligente de región: $e');
+      // No hacer nada, continuar con la búsqueda normal
+    }
   }
 } 

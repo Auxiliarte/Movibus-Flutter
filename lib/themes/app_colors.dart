@@ -31,4 +31,7 @@ class AppColors {
   static const darkMenuBackground = Colors.black;
   static const darkswithcActive = Color(0xFFA13CF2);
   static const darkbanCoup = Color(0xFF2F3133);
+  
+  // Getter para el color primario (compatible con tema actual)
+  static Color get primaryColor => const Color(0xFFA13CF2);
 }

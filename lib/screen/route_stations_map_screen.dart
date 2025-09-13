@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/route_model.dart';
 import '../services/route_service.dart';
+import '../services/region_service.dart';
 import '../themes/app_colors.dart';
 
 class RouteStationsMapScreen extends StatefulWidget {
@@ -274,9 +275,9 @@ class _RouteStationsMapScreenState extends State<RouteStationsMapScreen> {
                                   _fitBounds();
                                 }
                               },
-                              initialCameraPosition: const CameraPosition(
-                                target: LatLng(22.1497, -100.9764), // San Luis Potosí
-                                zoom: 12,
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(RegionService.currentRegion.centerLatitude, RegionService.currentRegion.centerLongitude), // Centro de región actual
+                                zoom: RegionService.currentRegion.defaultZoom,
                               ),
                               markers: _markers,
                               polylines: _polylines,

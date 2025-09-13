@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../services/region_service.dart';
 
 class GoogleMapsTestScreen extends StatefulWidget {
   const GoogleMapsTestScreen({super.key});
@@ -10,7 +11,7 @@ class GoogleMapsTestScreen extends StatefulWidget {
 
 class _GoogleMapsTestScreenState extends State<GoogleMapsTestScreen> {
   GoogleMapController? _mapController;
-  LatLng _center = const LatLng(22.1565, -100.9855); // San Luis Potosí
+  LatLng get _center => LatLng(RegionService.currentRegion.centerLatitude, RegionService.currentRegion.centerLongitude); // Centro de región actual
   Set<Marker> _markers = {};
 
   @override
@@ -25,7 +26,7 @@ class _GoogleMapsTestScreenState extends State<GoogleMapsTestScreen> {
         // Marcador de origen (azul)
         Marker(
           markerId: const MarkerId('origin'),
-          position: const LatLng(22.1565, -100.9855),
+          position: _center,
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
           infoWindow: const InfoWindow(
             title: 'Origen',

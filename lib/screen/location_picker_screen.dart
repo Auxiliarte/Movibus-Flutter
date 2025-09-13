@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location_service.dart';
 import '../services/places_service.dart';
+import '../services/region_service.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   final String title;
@@ -25,8 +26,11 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   bool _isLoading = true;
   String? _error;
 
-  // Coordenadas del centro de San Luis Potosí
-  static const LatLng _slpCenter = LatLng(22.1565, -100.9855);
+  // Obtener coordenadas del centro de la región actual
+  static LatLng get _regionCenter {
+    final region = RegionService.currentRegion;
+    return LatLng(region.centerLatitude, region.centerLongitude);
+  }
 
   @override
   void initState() {
@@ -45,15 +49,15 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
         });
         _getAddressFromLocation(_selectedLocation!);
       } else {
-        // Usar centro de SLP como fallback
+        // Usar centro de la región actual como fallback
         setState(() {
-          _selectedLocation = _slpCenter;
+          _selectedLocation = _regionCenter;
           _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _selectedLocation = _slpCenter;
+        _selectedLocation = _regionCenter;
         _error = e.toString();
         _isLoading = false;
       });
