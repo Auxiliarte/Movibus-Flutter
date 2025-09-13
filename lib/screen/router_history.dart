@@ -12,7 +12,8 @@ class RouterHistorialScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: ListView(
+      body: SafeArea(
+        child: ListView(
         children: [
           Container(
             color: theme.secondaryHeaderColor,
@@ -58,6 +59,7 @@ class RouterHistorialScreen extends StatelessWidget {
             salida: "Blvd. Solidaridad - zona centro",
           ),
         ],
+        ),
       ),
     );
   }

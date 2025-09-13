@@ -129,24 +129,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Función opcional para resetear el tutorial (útil para testing)
-  Future<void> _resetTutorial() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('has_seen_tutorial', false);
-      
-      if (mounted) {
-        setState(() {
-          _showHelp = true;
-        });
-      }
-      
-      print('🔄 Tutorial reset - will show again next time');
-    } catch (e) {
-      print('Error resetting tutorial: $e');
-    }
-  }
-
   Future<void> _getCurrentLocation() async {
     // 🚨 SOLUCIÓN: No sobreescribir si el usuario ya seleccionó una ubicación
     if (_fromLatitude != null && _fromLongitude != null &&
@@ -178,13 +160,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
         _checkInputs();
         print('✅ Set current location: (${_fromLatitude}, $_fromLongitude) - ${_currentLocationAddress}');
+        
+        // Mostrar mensaje de éxito
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Ubicación actualizada: ${_currentLocationAddress ?? 'Mi ubicación actual'}'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     } catch (e) {
       setState(() {
         _isLoadingLocation = false;
       });
       print('❌ Error getting current location: $e');
-      // No mostrar error aquí, el usuario puede ingresar manualmente
+      
+      // Mostrar mensaje de error al usuario
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().contains('Permisos') 
+                ? 'Se necesitan permisos de ubicación para usar esta función'
+                : 'No se pudo obtener la ubicación. Verifica que el GPS esté habilitado.',
+            ),
+            backgroundColor: Colors.orange,
+            action: e.toString().contains('Permisos')
+              ? SnackBarAction(
+                  label: 'Configurar',
+                  textColor: Colors.white,
+                  onPressed: () async {
+                    await LocationService.openAppSettings();
+                  },
+                )
+              : null,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 

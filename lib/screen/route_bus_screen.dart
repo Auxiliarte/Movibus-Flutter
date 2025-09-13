@@ -39,7 +39,8 @@ class _BusRouteScreenState extends State<BusRouteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
+      body: SafeArea(
+        child: Stack(
         children: [
           // Fondo
           Container(color: Colors.white),
@@ -97,6 +98,7 @@ class _BusRouteScreenState extends State<BusRouteScreen> {
               },
             ),
         ],
+        ),
       ),
     );
   }
